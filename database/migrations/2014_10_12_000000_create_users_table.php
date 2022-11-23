@@ -30,7 +30,6 @@ return new class extends Migration
       $table->id();
       $table->string('sku');
       $table->string('name');
-      $table->string('barcode');
       $table->float('cost')->unsigned();
       $table->float('price')->unsigned();
       $table->text('description')->nullable();

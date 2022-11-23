@@ -37,7 +37,47 @@ class AppController extends Controller
     return redirect('/');
   }
 
-  public function index(Request $request) {
-    return view('switch');
+  public function logout(Request $request) {
+    $request->session()->flush();
+
+    return redirect('/login');
   }
+
+  public function index(Request $request) {
+    return view('home');
+  }
+
+  public function settings(Request $request) {
+    $user = $request->session()->get('user');
+    $warningLimit = $request->session()->get('warning_limit');
+
+    return view('settings', ['username' => $user, 'warning_limit' => $warningLimit]);
+  }
+
+  public function updateSettings(Request $request) {
+    $username = $request->get('username');
+    $password = $request->get('password');
+    $warningLimit = $request->get('warning-limit');
+
+    if (isset($username)) {
+      Setting::where('key', 'username')
+            ->update(['value' => $username]);
+
+      $request->session()->put('user', $username);
+    }
+    
+    if (isset($password)) {
+      Setting::where('key', 'password')
+            ->update(['value' => app('hash')->make($password)]);
+    }
+
+    if (isset($warningLimit)) {
+      Setting::where('key', 'warning_limit')
+            ->update(['value' => $warningLimit]);
+      $request->session()->put('warning_limit', $warningLimit);
+    }
+
+    return redirect()->back()->with('success', 'Settings has been updated!'); 
+  }
+  
 }

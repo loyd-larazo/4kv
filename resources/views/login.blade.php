@@ -22,7 +22,7 @@
             <div class="card shadow-2-strong" style="border-radius: 1rem;">
               <div class="card-body p-5 text-center">
                 @if(isset($error))
-                  <div class="alert alert-danger" role="alert">
+                  <div class="alert alert-danger text-center" role="alert">
                     {{ $error }}
                   </div>
                 @endif

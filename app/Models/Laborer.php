@@ -7,5 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Laborer extends Model
 {
-    use HasFactory;
+  protected $fillable = [
+    'firstname', 'lastname', 'picture', 'gender', 'birthdate', 'address', 'contact_number', 'salary', 'position'
+  ];
 }
