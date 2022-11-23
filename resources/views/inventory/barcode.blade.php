@@ -31,7 +31,7 @@
         }
       </style>
   </head>
-  <body>
+  <body onafterprint="window.close()">
     <?php echo DNS1D::getBarcodeSVG($sku, 'C39', 1, 70) ?>
 
     <script>
