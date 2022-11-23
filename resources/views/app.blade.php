@@ -15,7 +15,9 @@
   </head>
   <body>
     <div>
-      <img class="logo" src="/images/logo.png"/>
+      <a href="/">
+        <img class="logo" src="/images/logo.png"/>
+      </a>
     </div>
 
     <!-- Sidebar -->
