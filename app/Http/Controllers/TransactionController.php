@@ -23,7 +23,9 @@ class TransactionController extends Controller
 		$laborers = Laborer::get();
 		$items = Item::select('id', 'sku', 'name', 'cost')->get();
 
-    $transactions = Transaction::with(['items.item', 'items.supplier', 'laborer'])->paginate(20);
+    $transactions = Transaction::with(['items.item', 'items.supplier', 'laborer'])
+                                ->orderBy('created_at', 'desc')
+                                ->paginate(20);
 
 		return view('inventory.transactions', [
 			'transactions' => $transactions, 
@@ -37,7 +39,7 @@ class TransactionController extends Controller
 		$laborer = $request->get('laborer');
 		$remarks = $request->get('remarks');
 		$items = json_decode($request->get('items'));
-		$code = date("Y").date("m").date("d").uniqid(true);
+		$code = strtoupper(date("Y").date("m").date("d").uniqid(true));
 
 		$transaction = Transaction::create([
 			'transaction_code' => $code,
@@ -62,6 +64,10 @@ class TransactionController extends Controller
 				'amount' => $item->cost,
 				'total_amount' => $itemTotalCost,
 			]);
+
+      $itemModel = Item::where('id', $item->id)->first();
+      $itemModel->stock = (int)$itemModel->stock + (int)$item->quantity;
+      $itemModel->save();
 		}
 
 		$transaction->total_quantity = $totalQuantity;

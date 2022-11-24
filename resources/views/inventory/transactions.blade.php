@@ -36,13 +36,18 @@
     <tbody>
       @if($transactions && count($transactions))
         @foreach($transactions as $transaction)
+          <?php 
+            $strDate = strtotime($transaction->created_at);
+            $transDate = getDate($strDate);
+            $transactionDate = $transDate['month']." ".$transDate['mday'].", ".$transDate['year'];
+          ?>
           <tr>
             <td>{{ $transaction->transaction_code }}</td>
             <td>{{ $transaction->total_quantity }}</td>
-						<td>{{ $transaction->total_amount }}</td>
+						<td>P{{ number_format($transaction->total_amount) }}</td>
 						<td>{{ $transaction->laborer ? $transaction->laborer->firstname." ".$transaction->laborer->lastname : '' }}</td>
 						<td>{{ $transaction->remarks }}</td>
-						<td>{{ $transaction->created_at }}</td>
+						<td>{{ $transactionDate }}</td>
             <td>
               <button 
                 class="btn btn-sm btn-outline-primary view-item" 
@@ -196,7 +201,7 @@
         location.href = `/transactions?page=${page}`;
       });
 
-      $('#sku').change(function() {
+      $('#sku').keyup(function() {
         var sku = $(this).val();
         var selectedItem = productItems.find(pItem => pItem.sku == sku);
 
@@ -259,6 +264,7 @@
 
         form.method = "POST";
         form.action = "/transaction";
+        form.style.cssText = "display:none;"
 
         var tokenForm = document.createElement("input");
         tokenForm.value = "{{ csrf_token() }}";

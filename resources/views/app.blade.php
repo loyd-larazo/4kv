@@ -11,6 +11,7 @@
       <link href="/css/app.css" rel="stylesheet">
 
       <script src="/js/jquery-3.6.1.min.js"></script>
+      <script src="/js/jquery.canvasjs.min.js"></script>
       <script src="/bootstrap/js/bootstrap.min.js"></script>
   </head>
   <body>
@@ -31,7 +32,10 @@
           <span class="list-group-item ripple">
             <i class="fas fa-chart-area fa-fw me-3"></i><span>POS</span>
           </span>
-          <a href="#" class="list-group-item list-group-item-action ripple ps-5">
+          <a href="/sell" class="list-group-item list-group-item-action ripple ps-5 {{ request()->route()->getName() == 'sell' ? 'active' : ''  }}">
+            <i class="fa-solid fa-cash-register me-3"></i><span>Sell</span>
+          </a>
+          <a href="/sales" class="list-group-item list-group-item-action ripple ps-5 {{ request()->route()->getName() == 'sales' ? 'active' : ''  }}">
             <i class="fa-solid fa-file-invoice me-3"></i><span>Sales</span>
           </a>
 

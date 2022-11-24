@@ -37,13 +37,21 @@
     <tbody>
       @if($laborers && count($laborers))
         @foreach($laborers as $laborer)
+          <?php 
+            $birthdate = "";
+            if ($laborer->birthdate) {
+              $strDate = strtotime($laborer->birthdate);
+              $transDate = getDate($strDate);
+              $birthdate = $transDate['month']." ".$transDate['mday'].", ".$transDate['year'];
+            }
+          ?>
           <tr>
             <td class="text-capitalize">{{ $laborer->firstname .' '. $laborer->lastname }}</td>
             <td class="text-capitalize">{{ $laborer->gender }}</td>
-            <td>{{ $laborer->birthdate }}</td>
+            <td>{{ $birthdate }}</td>
             <td>{{ $laborer->address }}</td>
             <td>{{ $laborer->contact_number }}</td>
-            <td>{{ $laborer->salary }}</td>
+            <td>P{{ number_format($laborer->salary) }}</td>
             <td class="text-capitalize">{{ $laborer->position }}</td>
             <td>
               <button 

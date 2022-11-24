@@ -25,7 +25,7 @@
     <thead>
       <tr>
         <th scope="col">SKU</th>
-        <th scope="col">Product</th>
+        <th scope="col">Item</th>
         <th scope="col">Cost</th>
         <th scope="col">Price</th>
         <th scope="col">Description</th>
