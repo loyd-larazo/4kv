@@ -49,10 +49,5 @@ Route::middleware([ValidateUser::class])->group(function () {
   Route::get('/transactions', [TransactionController::class, 'transactions'])->name('transactions');
   Route::post('/transaction', [TransactionController::class, 'transaction']);
 
-  Route::get('/sell', [POSController::class, 'sell'])->name('sell');
-  Route::get('/sales', [POSController::class, 'sales'])->name('sales');
-  Route::post('/sales', [POSController::class, 'saveSales']);
-  Route::get('/sale/{saleId}', [POSController::class, 'printSale']);
-
   Route::get('/logout', [AppController::class, 'logout']);
 });

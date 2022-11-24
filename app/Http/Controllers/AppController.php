@@ -50,39 +50,7 @@ class AppController extends Controller
   }
 
   public function index(Request $request) {
-    $page = $request->get('page') ?? 1;
-    $limit = (int)$request->session()->get('warning_limit');
-
-    Paginator::currentPageResolver(function() use ($page) {
-      return $page;
-    });
-
-    $sales = Sale::select(
-                  DB::raw('sum(total_amount) as y'), 
-                  DB::raw("DATE_FORMAT(created_at,'%m %Y') as label")
-                )
-                ->groupBy('label')
-                ->orderBy('label')
-                ->limit(12)
-                ->get();
-
-    $lowStockItems = Item::where('stock', '<=', $limit)->paginate(20);
-
-    $topSellingItems = SaleItem::select(
-                                'item_id',
-                                DB::raw('sum(quantity) as sold'), 
-                              )
-                              ->with('item')
-                              ->groupBy('item_id')
-                              ->orderBy('sold', 'DESC')
-                              ->limit(10)
-                              ->get();
-
-    return view('home', [
-      'sales' => json_encode($sales),
-      'lowStocks' => $lowStockItems,
-      'topSelling' => $topSellingItems
-    ]);
+    return view('home');
   }
 
   public function settings(Request $request) {
