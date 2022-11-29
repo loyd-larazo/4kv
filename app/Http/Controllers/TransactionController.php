@@ -15,15 +15,20 @@ class TransactionController extends Controller
 {
 	public function transactions(Request $request) {
 		$page = $request->get('page') ?? 1;
+		$search = $request->get('search');
     Paginator::currentPageResolver(function() use ($page) {
       return $page;
     });
 
-		$suppliers = Supplier::get();
+		$suppliers = Supplier::where('status', 1)->get();
 		$laborers = Laborer::get();
-		$items = Item::select('id', 'sku', 'name', 'cost')->get();
+		$items = Item::select('id', 'sku', 'name', 'cost')->where('status', 1)->get();
 
-    $transactions = Transaction::with(['items.item', 'items.supplier', 'laborer'])
+    $transactions = Transaction::with(['items.item', 'items.supplier'])
+																->when($search, function($query) use ($search) {
+																	$query->where('transaction_code', 'like', "%$search%")
+																				->orWhere('laborer', 'like', "%$search%");
+																})
                                 ->orderBy('created_at', 'desc')
                                 ->paginate(20);
 
@@ -31,7 +36,8 @@ class TransactionController extends Controller
 			'transactions' => $transactions, 
 			'laborers' => $laborers, 
 			'suppliers' => json_encode($suppliers), 
-			'items' => json_encode($items)
+			'items' => json_encode($items),
+			'search' => $search
 		]);
 	}
 
@@ -40,12 +46,14 @@ class TransactionController extends Controller
 		$remarks = $request->get('remarks');
 		$items = json_decode($request->get('items'));
 		$code = strtoupper(date("Y").date("m").date("d").uniqid(true));
+		$laborerModel = Laborer::where('id', $laborer)->first();
 
 		$transaction = Transaction::create([
 			'transaction_code' => $code,
 			'total_quantity' => 0,
 			'total_amount' => 0,
 			'laborer_id' => $laborer,
+			'laborer' => $laborerModel->firstname." ".$laborerModel->lastname,
 			'remarks' => $remarks
 		]);
 

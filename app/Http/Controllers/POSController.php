@@ -14,7 +14,7 @@ class POSController extends Controller
   public function sell(Request $request) {
     $isSuccess = $request->get('success') ? $request->get('success') : null;
 
-    $items = Item::select('id', 'sku', 'name', 'price', 'stock')->get();
+    $items = Item::select('id', 'sku', 'name', 'price', 'stock')->where('status', 1)->get();
 
     return view('pos.sell', [
       'items' => json_encode($items),
@@ -24,6 +24,7 @@ class POSController extends Controller
 
   public function sales(Request $request) {
     $page = $request->get('page') ?? 1;
+    $search = $request->get('search');
     $date = $request->get('date') ? $request->get('date') : date('Y-m-d');
     Paginator::currentPageResolver(function() use ($page) {
       return $page;
@@ -32,12 +33,16 @@ class POSController extends Controller
     $sales = Sale::when($date, function($query) use ($date) {
                     $query->whereDate('created_at', $date);
                   })
+                  ->when($search, function($query) use ($search) {
+                    $query->where('reference', $search);
+                  })
                   ->with('items.item')
                   ->orderBy('created_at', 'desc')->paginate(20);
 
     return view('pos.sales', [
       'sales' => $sales,
-      'date' => $date
+      'date' => $date,
+      'search' => $search
     ]);
   }
 

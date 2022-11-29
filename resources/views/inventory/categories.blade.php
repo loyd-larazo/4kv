@@ -4,6 +4,15 @@
   <nav class="navbar navbar-light bg-light">
     <h1>Categories</h1>
 
+    <form class="row g-3 align-items-center" action="/categories" method="GET">
+      <div class="col-auto">
+        <input type="text" class="form-control" placeholder="Search Category" name="search" value="{{$search}}">
+      </div>
+      <div class="col-auto">
+        <input type="submit" class="form-control btn-outline-success" value="Search"/>
+      </div>
+    </form>
+
     <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#categoryModal" id="addCategory">
       Add Category
     </button>
@@ -25,14 +34,16 @@
     <thead>
       <tr>
         <th scope="col">Name</th>
+        <th scope="col">Status</th>
         <th scope="col"></th>
       </tr>
     </thead>
     <tbody>
       @if($categories && count($categories))
         @foreach($categories as $category)
-          <tr>
+          <tr class="{{ $category->status ? '' : 'table-danger' }}">
             <td class="text-capitalize">{{ $category->name }}</td>
+            <td>{{ $category->status == 1 ? 'Acitve' : 'Disabled' }}</td>
             <td>
               <button 
                 class="btn btn-sm btn-outline-warning edit-category" 
@@ -96,6 +107,15 @@
               <label class="form-label">Name</label>
               <input type="text" class="form-control" name="name" required>
             </div>
+
+            <div class="mb-3">
+              <label class="form-label">Status</label>
+              <select class="form-select" name="status" required>
+                <option value="">Select Option</option>
+                <option value="1">Active</option>
+                <option value="0">Disabled</option>
+              </select>
+            </div>
           </div>
           <div class="modal-footer">
             <button type="submit" class="btn btn-outline-success">Save</button>
@@ -139,6 +159,7 @@
 
         $('input[name="id"]').val(data.id);
         $('input[name="name"]').val(data.name);
+        $('select[name="status"]').val(data.status);
       });
 
       $('.delete-category').click(function() {

@@ -6,10 +6,32 @@
 
     <div class="row g-3 align-items-center">
       <div class="col-auto">
-        <label for="inputPassword6" class="col-form-label">Sales Date</label>
+        <select class="form-select" id="searchType">
+          <option {{ empty($search) ? 'selected="selected"' : '' }} value="date">Search by Date</option>
+          <option {{ empty($search) ? '' : 'selected="selected"' }} value="reference">Search by Reference</option>
+        </select>
       </div>
-      <div class="col-auto">
-        <input type="date" placeholder="Select Date" class="form-control col-auto" id="date"/>
+
+      <div class="col-auto hidden" id="referenceSearch">
+        <form class="row g-3 align-items-center" action="/sales" method="GET">
+          <div class="col-auto">
+            <input type="text" class="form-control" placeholder="Search Supplier" name="search" value="{{$search}}">
+          </div>
+          <div class="col-auto">
+            <input type="submit" class="form-control btn-outline-success" value="Search"/>
+          </div>
+        </form>
+      </div>
+
+      <div class="col-auto" id="dateSearch">
+        <div class="row g-3 align-items-center">
+          <div class="col-auto">
+            <label for="inputPassword6" class="col-form-label">Sales Date</label>
+          </div>
+          <div class="col-auto">
+            <input type="date" placeholder="Select Date" class="form-control col-auto" id="date"/>
+          </div>
+        </div>
       </div>
     </div>
   </nav>
@@ -122,6 +144,25 @@
 
   <script>
     $(function() {
+      var defaultSearch = "{{ $search }}";
+      if (defaultSearch) {
+        $('#referenceSearch').show();
+        $('#dateSearch').hide();
+      } else {
+        $('#referenceSearch').hide();
+        $('#dateSearch').show();
+      }
+
+      $('#searchType').change(function() {
+        if ($(this).val() == 'date') {
+          $('#referenceSearch').hide();
+          $('#dateSearch').show();
+        } else {
+          $('#dateSearch').hide();
+          $('#referenceSearch').show();
+        }
+      });
+
       var today = new Date();
       var dateVal = `${today.getFullYear()}-${today.getMonth() + 1}-${today.getDate()}`;
       var inputDate = "{{ $date }}" || dateVal;

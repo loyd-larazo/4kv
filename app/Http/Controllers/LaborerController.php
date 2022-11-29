@@ -11,13 +11,23 @@ class LaborerController extends Controller
 {
 	public function index(Request $request) {
 		$page = $request->get('page') ?? 1;
+    $search = $request->get('search');
     Paginator::currentPageResolver(function() use ($page) {
       return $page;
     });
 
-		$laborers = Laborer::paginate(20);
+		$laborers = Laborer::when($search, function($query) use ($search) {
+                          $query->where('firstname', 'like', "%$search%")
+                                ->orWhere('lastname', 'like', "%$search%")
+                                ->orWhere('gender', 'like', "%$search%")
+                                ->orWhere('address', 'like', "%$search%")
+                                ->orWhere('contact_number', 'like', "%$search%")
+                                ->orWhere('position', 'like', "%$search%");
+                        })
+                        ->orderBy('status', 'desc')
+                        ->paginate(20);
 
-		return view('inventory.laborers', ['laborers' => $laborers]);
+		return view('inventory.laborers', ['laborers' => $laborers, 'search' => $search]);
 	}
 
 	public function updateOrCreate(Request $request) {
@@ -30,6 +40,7 @@ class LaborerController extends Controller
 		$address = $request->get('address');
 		$salary = $request->get('salary');
 		$position = $request->get('position');
+		$status = $request->get('status');
 
 		$data = [
 			'firstname' => $firstname,
@@ -40,6 +51,7 @@ class LaborerController extends Controller
 			'address' => $address,
 			'salary' => $salary,
 			'position' => $position,
+			'status' => $status,
 		];
 
 		if (isset($id)) {

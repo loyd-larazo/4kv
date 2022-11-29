@@ -4,6 +4,15 @@
   <nav class="navbar navbar-light bg-light">
     <h1>Transactions</h1>
 
+    <form class="row g-3 align-items-center" action="/transactions" method="GET">
+      <div class="col-auto">
+        <input type="text" class="form-control" placeholder="Search Transactions" name="search" value="{{$search}}">
+      </div>
+      <div class="col-auto">
+        <input type="submit" class="form-control btn-outline-success" value="Search"/>
+      </div>
+    </form>
+
     <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#transactionsModal" id="addTransaction">
       Add Transaction
     </button>
@@ -45,7 +54,7 @@
             <td>{{ $transaction->transaction_code }}</td>
             <td>{{ $transaction->total_quantity }}</td>
 						<td>P{{ number_format($transaction->total_amount) }}</td>
-						<td>{{ $transaction->laborer ? $transaction->laborer->firstname." ".$transaction->laborer->lastname : '' }}</td>
+						<td>{{ $transaction->laborer }}</td>
 						<td>{{ $transaction->remarks }}</td>
 						<td>{{ $transactionDate }}</td>
             <td>
@@ -105,7 +114,7 @@
               <select class="form-select" name="laborer" required>
                 <option value="">Select Laborer</option>
                 @foreach($laborers as $laborer)
-                  <option value="{{ $laborer->id }}">{{ $laborer->firstname." ".$laborer->lastname }}</option>
+                  <option class="{{ $laborer->status ? 'status-active' : 'status-inactive' }}" value="{{ $laborer->id }}">{{ $laborer->firstname." ".$laborer->lastname }}</option>
                 @endforeach			
               </select>
             </div>
@@ -189,6 +198,7 @@
       $('#addTransaction').click(function() {
         $('#type').html("Add");
 
+        $(".status-inactive").hide();
         $("#items").html("");
         $('#scanItems').show();
         $('select[name="laborer"]').removeAttr('disabled');
@@ -293,6 +303,7 @@
       $('.view-item').click(function() {
         var transaction = $(this).data('json');
 
+        $(".status-inactive").show();
         $('#scanItems').hide();
         $('.modal-footer').hide();
         $('select[name="laborer"]').attr('disabled', 'disabled').val(transaction.laborer_id);

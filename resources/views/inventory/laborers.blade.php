@@ -4,6 +4,15 @@
   <nav class="navbar navbar-light bg-light">
     <h1>Laborers</h1>
 
+    <form class="row g-3 align-items-center" action="/laborers" method="GET">
+      <div class="col-auto">
+        <input type="text" class="form-control" placeholder="Search Laborer" name="search" value="{{$search}}">
+      </div>
+      <div class="col-auto">
+        <input type="submit" class="form-control btn-outline-success" value="Search"/>
+      </div>
+    </form>
+
     <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#laborerModal" id="addLaborer">
       Add Laborer
     </button>
@@ -31,6 +40,7 @@
         <th scope="col">Contact Number</th>
         <th scope="col">Salary</th>
         <th scope="col">Position</th>
+        <th scope="col">Status</th>
         <th scope="col"></th>
       </tr>
     </thead>
@@ -45,7 +55,7 @@
               $birthdate = $transDate['month']." ".$transDate['mday'].", ".$transDate['year'];
             }
           ?>
-          <tr>
+          <tr class="{{ $laborer->status ? '' : 'table-danger' }}">
             <td class="text-capitalize">{{ $laborer->firstname .' '. $laborer->lastname }}</td>
             <td class="text-capitalize">{{ $laborer->gender }}</td>
             <td>{{ $birthdate }}</td>
@@ -53,6 +63,7 @@
             <td>{{ $laborer->contact_number }}</td>
             <td>P{{ number_format($laborer->salary) }}</td>
             <td class="text-capitalize">{{ $laborer->position }}</td>
+            <td>{{ $laborer->status == 1 ? 'Acitve' : 'Disabled' }}</td>
             <td>
               <button 
                 class="btn btn-sm btn-outline-warning edit-laborer" 
@@ -155,6 +166,15 @@
               <label class="form-label">Position</label>
               <input type="text" class="form-control" name="position" required>
             </div>
+
+            <div class="mb-3">
+              <label class="form-label">Status</label>
+              <select class="form-select" name="status" required>
+                <option value="">Select Option</option>
+                <option value="1">Active</option>
+                <option value="0">Disabled</option>
+              </select>
+            </div>
           </div>
           <div class="modal-footer">
             <button type="submit" class="btn btn-outline-success">Save</button>
@@ -205,6 +225,7 @@
         $('textarea[name="address"]').val(data.address);
         $('input[name="salary"]').val(data.salary);
         $('input[name="position"]').val(data.position);
+        $('select[name="status"]').val(data.status);
       });
 
       $('.delete-laborer').click(function() {

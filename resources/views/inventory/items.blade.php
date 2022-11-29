@@ -4,6 +4,15 @@
   <nav class="navbar navbar-light bg-light">
     <h1>Items</h1>
 
+    <form class="row g-3 align-items-center" action="/items" method="GET">
+      <div class="col-auto">
+        <input type="text" class="form-control" placeholder="Search SKU or Item" name="search" value="{{$search}}">
+      </div>
+      <div class="col-auto">
+        <input type="submit" class="form-control btn-outline-success" value="Search"/>
+      </div>
+    </form>
+
     <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#itemsModal" id="addItem">
       Add Item
     </button>
@@ -39,7 +48,7 @@
     <tbody>
       @if($items && count($items))
         @foreach($items as $item)
-          <tr>
+          <tr class="{{ $item->status ? '' : 'table-danger' }}">
             <td>{{ $item->sku }}</td>
             <td class="text-capitalize">{{ $item->name }}</td>
 						<td>{{ $item->cost }}</td>

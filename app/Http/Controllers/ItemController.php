@@ -14,16 +14,29 @@ use DNS1D;
 class ItemController extends Controller
 {
   public function items(Request $request) {
+    $search = $request->get('search');
     $page = $request->get('page') ?? 1;
-    $categories = Category::get();
+
+    $categories = Category::where('status', '1')
+													->get();
 
     Paginator::currentPageResolver(function() use ($page) {
       return $page;
     });
 
-    $items = Item::with('category')->paginate(20);
+    $items = Item::with('category')
+								->when($search, function($query) use ($search) {
+									$query->where('sku', 'like', "%$search%")
+												->orWhere('name', 'like', "%$search%");
+								})
+								->orderBy('status', 'desc')
+								->paginate(20);
 
-		return view('inventory.items', ['items' => $items, 'categories' => $categories]);
+		return view('inventory.items', [
+			'items' => $items, 
+			'categories' => $categories, 
+			'search' => $search
+		]);
 	}
 
   public function updateOrCreateItem(Request $request) {
@@ -65,22 +78,29 @@ class ItemController extends Controller
   }
 
   public function categories(Request $request) {
+		$search = $request->get('search');
     $page = $request->get('page') ?? 1;
     Paginator::currentPageResolver(function() use ($page) {
       return $page;
     });
 
-		$categories = Category::paginate(20);
+		$categories = Category::when($search, function($query) use ($search) {
+														$query->where('name', 'like', "%$search%");
+													})
+													->orderBy('status', 'desc')
+													->paginate(20);
 
-		return view('inventory.categories', ['categories' => $categories]);
+		return view('inventory.categories', ['categories' => $categories, 'search' => $search]);
 	}
 
   public function updateOrCreateCategory(Request $request) {
 		$id = $request->get('id');
 		$name = $request->get('name');
+		$status = $request->get('status');
 		
 		$data = [
 			'name' => $name,
+			'status' => $status,
 		];
 
 		if (isset($id)) {
@@ -103,14 +123,22 @@ class ItemController extends Controller
 	}
 
   public function suppliers(Request $request) {
+		$search = $request->get('search');
     $page = $request->get('page') ?? 1;
     Paginator::currentPageResolver(function() use ($page) {
       return $page;
     });
 
-		$suppliers = Supplier::paginate(20);
+		$suppliers = Supplier::when($search, function($query) use ($search) {
+														$query->where('name', 'like', "%$search%")
+																	->orWhere('contact_person', 'like', "%$search%")
+																	->orWhere('contact_number', 'like', "%$search%")
+																	->orWhere('address', 'like', "%$search%");
+													})
+													->orderBy('status', 'desc')
+													->paginate(20);
 
-		return view('inventory.suppliers', ['suppliers' => $suppliers]);
+		return view('inventory.suppliers', ['suppliers' => $suppliers, 'search' => $search]);
 	}
 
   public function updateOrCreateSupplier(Request $request) {
@@ -119,12 +147,14 @@ class ItemController extends Controller
 		$contact_person = $request->get('contact_person');
 		$contact_number = $request->get('contact_number');
 		$address = $request->get('address');
+		$status = $request->get('status');
 		
 		$data = [
 			'name' => $name,
       'contact_person' => $contact_person,
       'contact_number' => $contact_number,
       'address' => $address,
+      'status' => $status,
 		];
 
 		if (isset($id)) {
