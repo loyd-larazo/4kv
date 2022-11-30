@@ -43,7 +43,7 @@
         @foreach($categories as $category)
           <tr class="{{ $category->status ? '' : 'table-danger' }}">
             <td class="text-capitalize">{{ $category->name }}</td>
-            <td>{{ $category->status == 1 ? 'Acitve' : 'Disabled' }}</td>
+            <td>{{ $category->status == 1 ? 'Active' : 'Disabled' }}</td>
             <td>
               <button 
                 class="btn btn-sm btn-outline-warning edit-category" 

@@ -97,10 +97,9 @@
       }, 1000);
 
       var sales = JSON.parse(@json($sales));
-
       sales.map(sale => {
         var labelArr = sale.label.split(" ");
-        labelArr[0] = months[parseInt(labelArr[0])];
+        labelArr[0] = months[parseInt(labelArr[0]) - 1];
         sale.label = labelArr.join(" ");
       });
       if (sales) {

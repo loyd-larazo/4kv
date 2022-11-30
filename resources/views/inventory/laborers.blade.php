@@ -63,7 +63,7 @@
             <td>{{ $laborer->contact_number }}</td>
             <td>P{{ number_format($laborer->salary) }}</td>
             <td class="text-capitalize">{{ $laborer->position }}</td>
-            <td>{{ $laborer->status == 1 ? 'Acitve' : 'Disabled' }}</td>
+            <td>{{ $laborer->status == 1 ? 'Active' : 'Disabled' }}</td>
             <td>
               <button 
                 class="btn btn-sm btn-outline-warning edit-laborer" 

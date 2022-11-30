@@ -49,7 +49,7 @@
             <td class="text-capitalize">{{ $supplier->contact_person }}</td>
             <td>{{ $supplier->contact_number }}</td>
             <td>{{ $supplier->address }}</td>
-            <td>{{ $supplier->status == 1 ? 'Acitve' : 'Disabled' }}</td>
+            <td>{{ $supplier->status == 1 ? 'Active' : 'Disabled' }}</td>
             <td>
               <button 
                 class="btn btn-sm btn-outline-warning edit-supplier" 

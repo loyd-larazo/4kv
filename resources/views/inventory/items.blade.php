@@ -57,7 +57,7 @@
 						<td>{{ $item->category ? $item->category->name : "" }}</td>
 						<td>{{ $item->sold_by_weight == 1 ? "Yes" : "No" }}</td>
 						<td>{{ $item->stock }}</td>
-						<td>{{ $item->status == 1 ? 'Acitve' : 'Disabled' }}</td>
+						<td>{{ $item->status == 1 ? 'Active' : 'Disabled' }}</td>
             <td>
               <button 
                 class="btn btn-sm btn-outline-warning edit-item" 
