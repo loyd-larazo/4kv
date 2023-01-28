@@ -5,7 +5,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Middleware\ValidateUser;
 
 use App\Http\Controllers\AppController;
-use App\Http\Controllers\LaborerController;
+use App\Http\Controllers\UserController;
 use App\Http\Controllers\ItemController;
 use App\Http\Controllers\TransactionController;
 use App\Http\Controllers\POSController;
@@ -27,9 +27,9 @@ Route::post('/login', [AppController::class, 'login']);
 Route::middleware([ValidateUser::class])->group(function () {
   Route::get('/', [AppController::class, 'index'])->name('dashboard');
 
-  Route::get('/laborers', [LaborerController::class, 'index'])->name('laborers');
-  Route::post('/laborer', [LaborerController::class, 'updateOrCreate']);
-  Route::delete('/laborer/{id}', [LaborerController::class, 'destroy']);
+  Route::get('/users', [UserController::class, 'index'])->name('users');
+  Route::post('/user', [UserController::class, 'updateOrCreate']);
+  Route::delete('/user/{id}', [UserController::class, 'destroy']);
 
   Route::get('/categories', [ItemController::class, 'categories'])->name('categories');
   Route::post('/category', [ItemController::class, 'updateOrCreateCategory']);
@@ -47,11 +47,15 @@ Route::middleware([ValidateUser::class])->group(function () {
   Route::post('/settings', [AppController::class, 'updateSettings'])->name('updateSettings');
 
   Route::get('/transactions', [TransactionController::class, 'transactions'])->name('transactions');
+  Route::get('/transaction', [TransactionController::class, 'addTransactionPage'])->name('addTransactionPage');
   Route::post('/transaction', [TransactionController::class, 'transaction']);
 
-  Route::get('/sell', [POSController::class, 'sell'])->name('sell');
+  Route::get('/cashier', [POSController::class, 'cashier'])->name('cashier');
+  Route::post('/cashier/open', [POSController::class, 'openCashier'])->name('openCashier');
+  Route::post('/cashier/close', [POSController::class, 'closeCashier'])->name('closeCashier');
   Route::get('/sales', [POSController::class, 'sales'])->name('sales');
   Route::post('/sales', [POSController::class, 'saveSales']);
+  Route::get('/daily-sales', [POSController::class, 'dailySales']);
   Route::get('/sale/{saleId}', [POSController::class, 'printSale']);
 
   Route::get('/logout', [AppController::class, 'logout']);

@@ -5,14 +5,14 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Pagination\Paginator;
 
 use App\Models\Setting;
+use App\Models\User;
 use App\Models\Sale;
 use App\Models\SaleItem;
 use App\Models\Item;
-
-use DB;
 
 class AppController extends Controller
 {
@@ -24,20 +24,18 @@ class AppController extends Controller
     $username = $request->get('username');
     $password = $request->get('password');
 
-    $settingUsername = Setting::where('key', 'username')->first();
-    $settingPassword = Setting::where('key', 'password')->first();
-
-    if (!$settingPassword || !$settingUsername) {
-      return view('/login', ['error' => 'Database is not initialized!']);
+    $user = User::where('username', $username)->first();
+    if (!$user) {
+      return view('/login', ['error' => 'Invalid credentials!', 'username' => $username]);
     }
 
-    if ($username != $settingUsername->value || !Hash::check($password, $settingPassword->value)) {
+    if (!Hash::check($password, $user->password)) {
       return view('/login', ['error' => 'Invalid credentials!', 'username' => $username]);
     }
 
     // Set session
     $settingWarningLimit = Setting::where('key', 'warning_limit')->first();
-    $request->session()->put('user', $settingUsername->value);
+    $request->session()->put('user', $user);
     $request->session()->put('warning_limit', $settingWarningLimit->value);
 
     return redirect('/');

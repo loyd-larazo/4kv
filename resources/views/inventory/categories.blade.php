@@ -4,7 +4,14 @@
   <nav class="navbar navbar-light bg-light">
     <h1>Categories</h1>
 
-    <form class="row g-3 align-items-center" action="/categories" method="GET">
+    <form class="row g-3 align-items-center" action="/categories" method="GET" id="searchForm">
+      <div class="col-auto row p-0 m-0 mt-3">
+        <label class="form-label col pt-2">Status: </label>
+        <select id="selectStatus" name="status" class="form-control col">
+          <option {{!isset($status) || (isset($status) && $status == 1) ? 'selected' : ''}} value="1">Active</option>
+          <option {{(isset($status) && $status == 0) ? 'selected' : ''}} value="0">Disabled</option>
+        </select>
+      </div>
       <div class="col-auto">
         <input type="text" class="form-control" placeholder="Search Category" name="search" value="{{$search}}">
       </div>
@@ -149,6 +156,10 @@
 
   <script>
     $(function() {
+      $("#selectStatus").change(function() {
+        $("#searchForm").submit();
+      });
+
       $('#addCategory').click(function() {
         $('#type').html("Add");
       });

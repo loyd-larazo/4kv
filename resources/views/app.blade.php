@@ -9,69 +9,108 @@
       <link href="/bootstrap/css/bootstrap.min.css" rel="stylesheet">
       <link href="/fontawesome/css/all.min.css" rel="stylesheet">
       <link href="/css/app.css" rel="stylesheet">
-
+      <link href="/jquery-ui/jquery-ui.min.css" rel="stylesheet">
+      
       <script src="/js/jquery-3.6.1.min.js"></script>
       <script src="/js/jquery.canvasjs.min.js"></script>
-      <script src="/bootstrap/js/bootstrap.min.js"></script>
+      <script src="/jquery-ui/jquery-ui.min.js"></script>
+      <script src="/bootstrap/js/bootstrap.bundle.min.js"></script>
   </head>
   <body>
-    <div>
-      <a href="/">
-        <img class="logo" src="/images/logo.png"/>
-      </a>
-    </div>
 
-    <!-- Sidebar -->
-    <nav id="sidebarMenu" class="d-lg-block sidebar bg-white">
-      <div class="position-sticky">
-        <div class="list-group list-group-flush mx-3 mt-4">
-          <a href="/" class="list-group-item list-group-item-action ripple {{ request()->route()->getName() == 'dashboard' ? 'active' : ''  }}" aria-current="true">
-            <i class="fas fa-tachometer-alt fa-fw me-3"></i><span>Dashboard</span>
-          </a>
+    <!--Main Navigation-->
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+      <div class="container-fluid">
+        <a href="/">
+          <img class="logo" src="/images/logo.png"/>
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+          <span class="navbar-toggler-icon"></span>
+        </button>
 
-          <span class="list-group-item ripple">
-            <i class="fas fa-chart-area fa-fw me-3"></i><span>POS</span>
-          </span>
-          <a href="/sell" class="list-group-item list-group-item-action ripple ps-5 {{ request()->route()->getName() == 'sell' ? 'active' : ''  }}">
-            <i class="fa-solid fa-cash-register me-3"></i><span>Sell</span>
-          </a>
-          <a href="/sales" class="list-group-item list-group-item-action ripple ps-5 {{ request()->route()->getName() == 'sales' ? 'active' : ''  }}">
-            <i class="fa-solid fa-file-invoice me-3"></i><span>Sales</span>
-          </a>
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+          <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+            <li class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle {{ in_array(request()->route()->getName(), ['sales','cashier']) ? 'active' : '' }}" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="fas fa-chart-area fa-fw me-3"></i><span>POS</span>
+              </a>
+              <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+                <li>
+                  <a href="/cashier" class="dropdown-item">
+                    <i class="fa-solid fa-cash-register me-3"></i><span>Cashier</span>
+                  </a>
+                </li>
+                <li>
+                  <a href="/sales" class="dropdown-item }}">
+                    <i class="fa-solid fa-file-invoice me-3"></i><span>Sales</span>
+                  </a>
+                </li>
+                <li>
+                  <a href="/daily-sales" class="dropdown-item }}">
+                    <i class="fa-regular fa-calendar-check me-3"></i><span>Daily Sales</span>
+                  </a>
+                </li>
+              </ul>
+            </li>
+            <li class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle {{ in_array(request()->route()->getName(), ['items','categories','transactions','suppliers'])  ? 'active' : '' }}" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="fa-solid fa-warehouse me-3"></i><span>Inventory</span>
+              </a>
+              <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+                <li>
+                  <a href="/items" class="dropdown-item">
+                    <i class="fa-solid fa-boxes-packing me-3"></i><span>Items</span>
+                  </a>
+                </li>
+                <li>
+                  <a href="/categories" class="dropdown-item }}">
+                    <i class="fa-solid fa-table-cells-large me-3"></i><span>Categories</span>
+                  </a>
+                </li>
+                <li>
+                  <a href="/transactions" class="dropdown-item }}">
+                    <i class="fa-solid fa-cart-flatbed me-3"></i><span>Transactions</span>
+                  </a>
+                </li>
+                <li>
+                  <a href="/suppliers" class="dropdown-item }}">
+                    <i class="fa-solid fa-truck-field me-3"></i><span>Suppliers</span>
+                  </a>
+                </li>
+              </ul>
+            </li>
+          </ul>
 
-          <span class="list-group-item ripple">
-            <i class="fa-solid fa-warehouse me-3"></i><span>Inventory</span>
-          </span>
-          <a href="/items" class="list-group-item list-group-item-action ripple ps-5 {{ request()->route()->getName() == 'items' ? 'active' : ''  }}">
-            <i class="fa-solid fa-boxes-packing me-3"></i><span>Items</span>
-          </a>
-          <a href="/categories" class="list-group-item list-group-item-action ripple ps-5 {{ request()->route()->getName() == 'categories' ? 'active' : ''  }}">
-            <i class="fa-solid fa-table-cells-large me-3"></i><span>Categories</span>
-          </a>
-          <a href="/transactions" class="list-group-item list-group-item-action ripple ps-5 {{ request()->route()->getName() == 'transactions' ? 'active' : ''  }}">
-            <i class="fa-solid fa-cart-flatbed me-3"></i><span>Transactions</span>
-          </a>
-          <a href="/suppliers" class="list-group-item list-group-item-action ripple ps-5 {{ request()->route()->getName() == 'suppliers' ? 'active' : ''  }}">
-            <i class="fa-solid fa-truck-field me-3"></i><span>Suppliers</span>
-          </a>
-          <a href="/laborers" class="list-group-item list-group-item-action ripple ps-5 {{ request()->route()->getName() == 'laborers' ? 'active' : ''  }}">
-            <i class="fa-solid fa-people-carry-box me-3"></i><span>Laborers</span>
-          </a>
-
-          <a href="/settings" class="list-group-item list-group-item-action ripple {{ request()->route()->getName() == 'settings' ? 'active' : ''  }}">
-            <i class="fa-solid fa-gears me-3"></i><span>Settings</span>
-          </a>
-          
+          <ul class="navbar-nav mb-2 mb-lg-0">
+            <li class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle {{ in_array(request()->route()->getName(), ['settings'])  ? 'active' : '' }}" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="fa-solid fa-gears me-3"></i><span>Settings</span>
+              </a>
+              <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+                <li>
+                  <a href="/items" class="dropdown-item">
+                    <i class="fa-solid fa-boxes-packing me-3"></i><span>Config</span>
+                  </a>
+                </li>
+                <li>
+                  <a href="/users" class="dropdown-item }}">
+                    <i class="fa-solid fa-table-cells-large me-3"></i><span>Users</span>
+                  </a>
+                </li>
+                <li>
+                  <a href="/logout" class="dropdown-item }}">
+                    <i class="fa-solid fa-cart-flatbed me-3"></i><span>Logout</span>
+                  </a>
+                </li>
+              </ul>
+            </li>
+          </ul>
         </div>
       </div>
     </nav>
-      <!-- Sidebar -->
-    
-    <!--Main Navigation-->
 
-    <!--Main layout-->
-    <main class="main-content px-4">
-      <div class="pt-4">
+    <main>
+      <div class="container-fluid pt-4">
         <div class="card">
           <div class="card-body">
             @yield('content')
@@ -79,7 +118,5 @@
         </div>
       </div>
     </main>
-    <!--Main layout-->
-    
   </body>
 </html>

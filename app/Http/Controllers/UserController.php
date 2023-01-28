@@ -4,10 +4,11 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Pagination\Paginator;
+use Illuminate\Support\Facades\Hash;
 
-use App\Models\Laborer;
+use App\Models\User;
 
-class LaborerController extends Controller
+class UserController extends Controller
 {
 	public function index(Request $request) {
 		$page = $request->get('page') ?? 1;
@@ -16,22 +17,27 @@ class LaborerController extends Controller
       return $page;
     });
 
-		$laborers = Laborer::when($search, function($query) use ($search) {
-                          $query->where('firstname', 'like', "%$search%")
+		$users = User::when($search, function($query) use ($search) {
+                          $query->where('username', 'like', "%$search%")
+                                ->orWhere('firstname', 'like', "%$search%")
                                 ->orWhere('lastname', 'like', "%$search%")
                                 ->orWhere('gender', 'like', "%$search%")
                                 ->orWhere('address', 'like', "%$search%")
-                                ->orWhere('contact_number', 'like', "%$search%")
-                                ->orWhere('position', 'like', "%$search%");
+                                ->orWhere('contact_number', 'like', "%$search%");
                         })
                         ->orderBy('status', 'desc')
                         ->paginate(20);
 
-		return view('inventory.laborers', ['laborers' => $laborers, 'search' => $search]);
+		return view('inventory.users', ['users' => $users, 'search' => $search]);
 	}
 
 	public function updateOrCreate(Request $request) {
 		$id = $request->get('id');
+		$changePassword = $request->get('change_password');
+
+		$username = $request->get('username');
+		$password = $request->get('password');
+		$type = $request->get('type');
 		$firstname = $request->get('firstname');
 		$lastname = $request->get('lastname');
 		$gender = $request->get('gender');
@@ -39,10 +45,11 @@ class LaborerController extends Controller
 		$contact_number = $request->get('contact_number');
 		$address = $request->get('address');
 		$salary = $request->get('salary');
-		$position = $request->get('position');
 		$status = $request->get('status');
 
-		$data = [
+    $data = [
+			'username' => $username,
+			'type' => $type,
 			'firstname' => $firstname,
 			'lastname' => $lastname,
 			'gender' => $gender,
@@ -50,22 +57,32 @@ class LaborerController extends Controller
 			'contact_number' => $contact_number,
 			'address' => $address,
 			'salary' => $salary,
-			'position' => $position,
 			'status' => $status,
 		];
-
-		if (isset($id)) {
-			Laborer::where('id', $id)
-						->update($data);
-		} else {
-			Laborer::create($data);
-		}
-
-		return redirect()->back()->with('success', 'Laborer has been saved!'); 
+    
+    if (isset($id)) {
+      $user = User::where('id', $id)->first();
+      if ($user) {
+        if ($changePassword) {
+          $password = $request->get('new_password');
+          $user->password = app('hash')->make($password);
+          $user->save();
+          return redirect()->back()->with('success', 'Password has been saved!'); 
+        } else {
+          $data['password'] = app('hash')->make($password);
+          User::where('id', $id)
+              ->update($data);
+        }
+      }
+    } else {
+      User::create($data);
+    }
+    
+		return redirect()->back()->with('success', 'User has been saved!'); 
 	}
 	
 	public function destroy(Request $request, $laborerId) {
-		Laborer::where('id', $laborerId)->delete();
+		User::where('id', $laborerId)->delete();
 
 		return redirect()->back()->with('success', 'Laborer has been deleted!'); 
 	}

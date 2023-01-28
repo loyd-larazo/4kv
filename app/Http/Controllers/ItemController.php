@@ -15,6 +15,7 @@ class ItemController extends Controller
 {
   public function items(Request $request) {
     $search = $request->get('search');
+    $status = $request->get('status') == null ? 1 : $request->get('status');
     $page = $request->get('page') ?? 1;
 
     $categories = Category::where('status', '1')
@@ -29,13 +30,21 @@ class ItemController extends Controller
 									$query->where('sku', 'like', "%$search%")
 												->orWhere('name', 'like', "%$search%");
 								})
-								->orderBy('status', 'desc')
+                ->where('status', $status)
+                ->when(isset($status), function($query) use ($status) {
+                  if ($status == 1) {
+                    $query->where('stock', '>', 0);
+                  } else {
+                    $query->orWhere('stock', 0);
+                  }
+                })
 								->paginate(20);
 
 		return view('inventory.items', [
 			'items' => $items, 
 			'categories' => $categories, 
-			'search' => $search
+			'search' => $search,
+			'status' => $status,
 		]);
 	}
 
@@ -46,7 +55,7 @@ class ItemController extends Controller
 		$price = $request->get('price');
 		$description = $request->get('description');
 		$category = $request->get('category');
-		$sold_by_weight = $request->get('sold_by_weight');
+		$sold_by = $request->get('sold_by');
 		$stock = $request->get('stock');
 		$status = $request->get('status');
 		
@@ -56,7 +65,8 @@ class ItemController extends Controller
       'price' => $price,
       'description' => $description,
       'category_id' => $category,
-      'sold_by_weight' => $sold_by_weight,
+      'sold_by_weight' => $sold_by == 'weight' ? 1 : 0,
+      'sold_by_length' => $sold_by == 'length' ? 1 : 0,
       'status' => $status,
 		];
 
@@ -79,6 +89,7 @@ class ItemController extends Controller
 
   public function categories(Request $request) {
 		$search = $request->get('search');
+    $status = $request->get('status') == null ? 1 : $request->get('status');
     $page = $request->get('page') ?? 1;
     Paginator::currentPageResolver(function() use ($page) {
       return $page;
@@ -87,10 +98,14 @@ class ItemController extends Controller
 		$categories = Category::when($search, function($query) use ($search) {
 														$query->where('name', 'like', "%$search%");
 													})
-													->orderBy('status', 'desc')
+													->where('status', $status)
 													->paginate(20);
 
-		return view('inventory.categories', ['categories' => $categories, 'search' => $search]);
+		return view('inventory.categories', [
+      'categories' => $categories, 
+      'search' => $search,
+      'status' => $status,
+    ]);
 	}
 
   public function updateOrCreateCategory(Request $request) {
@@ -125,6 +140,7 @@ class ItemController extends Controller
   public function suppliers(Request $request) {
 		$search = $request->get('search');
     $page = $request->get('page') ?? 1;
+    $status = $request->get('status') == null ? 1 : $request->get('status');
     Paginator::currentPageResolver(function() use ($page) {
       return $page;
     });
@@ -135,10 +151,14 @@ class ItemController extends Controller
 																	->orWhere('contact_number', 'like', "%$search%")
 																	->orWhere('address', 'like', "%$search%");
 													})
-													->orderBy('status', 'desc')
+													->where('status', $status)
 													->paginate(20);
 
-		return view('inventory.suppliers', ['suppliers' => $suppliers, 'search' => $search]);
+		return view('inventory.suppliers', [
+      'suppliers' => $suppliers, 
+      'search' => $search, 
+      'status' => $status
+    ]);
 	}
 
   public function updateOrCreateSupplier(Request $request) {

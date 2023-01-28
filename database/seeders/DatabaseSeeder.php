@@ -8,6 +8,7 @@ use Illuminate\Database\Seeder;
 use App\Models\Setting;
 use App\Models\Category;
 use App\Models\Item;
+use App\Models\User;
 
 class DatabaseSeeder extends Seeder
 {
@@ -18,16 +19,37 @@ class DatabaseSeeder extends Seeder
    */
   public function run()
   {
-    Setting::updateOrCreate([
-      'key' => 'username',
+
+    // Create Initial users
+    User::firstOrCreate([
+      'username' => 'admin'
     ], [
-      'value' => 'admin'
+      'password' => app('hash')->make('secret@123'), 
+      'type' => 'admin', 
+      'firstname' => 'Admin', 
+      'gender' => 'male', 
+      'status' => 1
     ]);
 
-    Setting::updateOrCreate([
-      'key' => 'password',
+    User::firstOrCreate([
+      'username' => 'cashier'
     ], [
-      'value' => app('hash')->make('secret@123')
+      'password' => app('hash')->make('secret@123'), 
+      'type' => 'cashier', 
+      'firstname' => 'Cashier', 
+      'gender' => 'male', 
+      'status' => 1
+    ]);
+
+    User::firstOrCreate([
+      'username' => 'stockman'
+    ], [
+      'password' => app('hash')->make('secret@123'), 
+      'type' => 'stock man', 
+      'firstname' => 'Stock', 
+      'lastname' => 'Man', 
+      'gender' => 'male', 
+      'status' => 1
     ]);
 
     Setting::updateOrCreate([
@@ -61,7 +83,7 @@ class DatabaseSeeder extends Seeder
           'description' => $item['Description'],
           'category_id' => $categoryId,
           'sold_by_weight' => $item['Sold by weight'] && $item['Sold by weight'] == "Y" ? 1 : 0,
-          'stock' => $item['Stock'] ? (int)$item['Stock'] >= 0 ? (int)$item['Stock'] : 0 : 0,
+          'stock' => $item['Stock'] ? ((int)$item['Stock'] >= 0 ? (int)$item['Stock'] : 0) : 0,
           'status' => $item['Status'] && $item['Status'] == "Y" ? 1 : 0,
         ]);
 

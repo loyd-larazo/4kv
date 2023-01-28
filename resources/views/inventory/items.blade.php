@@ -4,7 +4,14 @@
   <nav class="navbar navbar-light bg-light">
     <h1>Items</h1>
 
-    <form class="row g-3 align-items-center" action="/items" method="GET">
+    <form class="row g-3 align-items-center" action="/items" method="GET" id="searchForm">
+      <div class="col-auto row p-0 m-0 mt-3">
+        <label class="form-label col-auto pt-2">Status: </label>
+        <select id="selectStatus" name="status" class="form-control col">
+          <option {{!isset($status) || (isset($status) && $status == 1) ? 'selected' : ''}} value="1">Active</option>
+          <option {{(isset($status) && $status == 0) ? 'selected' : ''}} value="0">Disabled or 0 Stock</option>
+        </select>
+      </div>
       <div class="col-auto">
         <input type="text" class="form-control" placeholder="Search SKU or Item" name="search" value="{{$search}}">
       </div>
@@ -33,15 +40,15 @@
   <table class="table">
     <thead>
       <tr>
-        <th scope="col">SKU</th>
+        <th class="mobile-col-sm" scope="col">SKU</th>
         <th scope="col">Item</th>
         <th scope="col">Cost</th>
         <th scope="col">Price</th>
-        <th scope="col">Description</th>
-        <th scope="col">Category</th>
-        <th scope="col">Sold By Weight</th>
+        <th class="mobile-col-lg" scope="col">Description</th>
+        <th class="mobile-col-md" scope="col">Category</th>
+        <th class="mobile-col-sm" scope="col">Sold By</th>
         <th scope="col">Stock</th>
-        <th scope="col">Status</th>
+        <th class="mobile-col-md" scope="col">Status</th>
         <th scope="col"></th>
       </tr>
     </thead>
@@ -49,15 +56,15 @@
       @if($items && count($items))
         @foreach($items as $item)
           <tr class="{{ $item->status ? '' : 'table-danger' }}">
-            <td>{{ $item->sku }}</td>
+            <td class="mobile-col-sm">{{ $item->sku }}</td>
             <td class="text-capitalize">{{ $item->name }}</td>
 						<td>{{ $item->cost }}</td>
 						<td>{{ $item->price }}</td>
-						<td>{{ $item->description }}</td>
-						<td>{{ $item->category ? $item->category->name : "" }}</td>
-						<td>{{ $item->sold_by_weight == 1 ? "Yes" : "No" }}</td>
+						<td class="mobile-col-lg">{{ $item->description }}</td>
+						<td class="mobile-col-md">{{ $item->category ? $item->category->name : "" }}</td>
+						<td class="mobile-col-sm">{{ $item->sold_by_weight ? 'Weight' : ($item->sold_by_length ? 'Length' : 'Stock') }}</td>
 						<td>{{ $item->stock }}</td>
-						<td>{{ $item->status == 1 ? 'Active' : 'Disabled' }}</td>
+						<td class="mobile-col-md">{{ $item->status == 1 ? 'Active' : 'Disabled' }}</td>
             <td>
               <button 
                 class="btn btn-sm btn-outline-warning edit-item" 
@@ -75,7 +82,7 @@
         @endforeach
       @else
 				<tr>
-					<th colspan="7" class="text-center">No Items found.</th>
+					<th colspan="10" class="text-center">No Items found.</th>
 				</tr>
       @endif
     </tbody>
@@ -150,11 +157,12 @@
 						@endif
 
 						<div class="mb-3">
-              <label class="form-label">Sold by weight</label>
-              <select class="form-select" name="sold_by_weight" required>
+              <label class="form-label">Sold by</label>
+              <select class="form-select" name="sold_by" required>
                 <option value="">Select Option</option>
-                <option value="1">Yes</option>
-                <option value="0">No</option>
+                <option value="stock">Stock</option>
+                <option value="weight">Weight</option>
+                <option value="length">Length</option>
               </select>
             </div>
 
@@ -183,6 +191,10 @@
 
   <script>
     $(function() {
+      $("#selectStatus").change(function() {
+        $("#searchForm").submit();
+      });
+
       $('#addItem').click(function() {
         $('#type').html("Add");
         $('#skuField').hide();
@@ -194,6 +206,7 @@
 				$('#skuField').show();
 				$('#stockField').hide();
         var data = $(this).data('json');
+        var soldBy = data.sold_by_weight ? "weight" : (data.sold_by_length ? 'length' : 'stock');
 
         $('input[name="id"]').val(data.id);
         $('input[name="sku"]').val(data.sku);
@@ -201,7 +214,7 @@
         $('input[name="cost"]').val(data.cost);
         $('input[name="price"]').val(data.price);
         $('textarea[name="description"]').val(data.description);
-        $('select[name="sold_by_weight"]').val(data.sold_by_weight);
+        $('select[name="sold_by"]').val(soldBy);
         $('select[name="category"]').val(data.category);
         $('input[name="stock"]').val(data.stock);
         $('select[name="status"]').val(data.status);

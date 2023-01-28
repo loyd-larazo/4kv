@@ -22,8 +22,15 @@
         }
 
         td, th, tr, table {
-          border-top: 1px solid black;
           border-collapse: collapse;
+        }
+
+        td {
+          border-top: 1px solid black;
+        }
+
+        .no-border, .no-border td {
+          border-top: 0px !important;
         }
 
         .centered {
@@ -65,8 +72,8 @@
       <div >
         <img src="/images/logo-bnw.png" alt="Logo">
         <p class="centered">
-          Tuguegarao, <br>
-          Cagayan Valley
+          Provincial Road, Cataggaman Nuevo, Tuguegarao City<br>
+          No. 09452468528
         </p>
         <hr>
         <p>
@@ -88,8 +95,20 @@
               </tr>
             @endforeach
             <tr>
+              <td class="name">TAX: 12%</td>
+              <td class="price">P{{ $vat }}</td>
+            </tr>
+            <tr class="no-border">
               <td class="name">TOTAL</td>
               <td class="price">P{{ number_format($sale->total_amount) }}</td>
+            </tr>
+            <tr class="no-border">
+              <td class="name">PAID AMOUNT</td>
+              <td class="price">P{{ number_format($sale->paid_amount) }}</td>
+            </tr>
+            <tr class="no-border">
+              <td class="name">CHANGE</td>
+              <td class="price">P{{ number_format($sale->change_amount) }}</td>
             </tr>
           </tbody>
         </table>

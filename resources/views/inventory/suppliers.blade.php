@@ -4,7 +4,14 @@
   <nav class="navbar navbar-light bg-light">
     <h1>Suppliers</h1>
 
-    <form class="row g-3 align-items-center" action="/suppliers" method="GET">
+    <form class="row g-3 align-items-center" action="/suppliers" method="GET" id="searchForm">
+      <div class="col-auto row p-0 m-0 mt-3">
+        <label class="form-label col-auto pt-2">Status: </label>
+        <select id="selectStatus" name="status" class="form-control col">
+          <option {{!isset($status) || (isset($status) && $status == 1) ? 'selected' : ''}} value="1">Active</option>
+          <option {{(isset($status) && $status == 0) ? 'selected' : ''}} value="0">Disabled</option>
+        </select>
+      </div>
       <div class="col-auto">
         <input type="text" class="form-control" placeholder="Search Supplier" name="search" value="{{$search}}">
       </div>
@@ -35,8 +42,8 @@
       <tr>
         <th scope="col">Name</th>
         <th scope="col">Contact Person</th>
-        <th scope="col">Contact Number</th>
-        <th scope="col">Address</th>
+        <th class="mobile-col-sm" scope="col">Contact Number</th>
+        <th class="mobile-col-md" scope="col">Address</th>
         <th scope="col">Status</th>
         <th scope="col"></th>
       </tr>
@@ -47,8 +54,8 @@
           <tr class="{{ $supplier->status ? '' : 'table-danger' }}">
             <td class="text-capitalize">{{ $supplier->name }}</td>
             <td class="text-capitalize">{{ $supplier->contact_person }}</td>
-            <td>{{ $supplier->contact_number }}</td>
-            <td>{{ $supplier->address }}</td>
+            <td class="mobile-col-sm">{{ $supplier->contact_number }}</td>
+            <td class="mobile-col-md">{{ $supplier->address }}</td>
             <td>{{ $supplier->status == 1 ? 'Active' : 'Disabled' }}</td>
             <td>
               <button 
@@ -113,7 +120,7 @@
 
             <div class="mb-3">
               <label class="form-label">Contact Number</label>
-              <input type="text" class="form-control" name="contact_number" required>
+              <input type="number" class="form-control" name="contact_number" required>
             </div>
 
             <div class="mb-3">
@@ -140,6 +147,10 @@
 
   <script>
     $(function() {
+      $("#selectStatus").change(function() {
+        $("#searchForm").submit();
+      });
+
       $('#addSupplier').click(function() {
         $('#type').html("Add");
       });

@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class Transaction extends Model
 {
   protected $fillable = [
-    'transaction_code', 'total_quantity', 'total_amount', 'laborer_id', 'remarks', 'laborer'
+    'transaction_code', 'user_id', 'stock_man', 'total_quantity', 'total_amount', 'remarks'
   ];
 
   public function items() {

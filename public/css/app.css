@@ -1,9 +1,5 @@
 .logo {
-  position: fixed;
-  z-index: 999;
   width: 150px;
-  margin-top: 20px;
-  margin-left: 40px;
 }
 
 .login-container {
@@ -52,4 +48,57 @@
 .transaction-items {
   max-height: 200px;
   overflow-y: scroll;
+}
+
+.ui-autocomplete {
+  max-height: 100px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  z-index: 9999 !important;
+}
+
+.ui-menu {
+  width: 300px;
+}
+
+* html .ui-autocomplete {
+  height: 200px;
+}
+
+.ui-menu-item:hover {
+  background: #007bff;
+  color: #fff;
+}
+
+.search-items-container {
+  max-height: 200px;
+  overflow: scroll;
+}
+
+.car-qty {
+  width: 50px;
+}
+
+@media only screen and (max-width: 1399px) {
+  .mobile-col-lg {
+    display: none;
+  }
+}
+
+@media only screen and (max-width: 991px) {
+  .mobile-col-md-lg {
+    display: none;
+  }
+}
+
+@media only screen and (max-width: 768px) {
+  .mobile-col-md {
+    display: none;
+  }
+}
+
+@media only screen and (max-width: 470px) {
+  .mobile-col-sm {
+    display: none;
+  }
 }

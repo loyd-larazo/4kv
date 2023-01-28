@@ -10,7 +10,7 @@ class Sale extends Model
   use HasFactory;
 
   protected $fillable = [
-    'reference', 'total_quantity', 'total_amount'
+    'user_id', 'daily_sale_id', 'reference', 'total_quantity', 'total_amount', 'paid_amount', 'change_amount'
   ];
 
   public function items() {

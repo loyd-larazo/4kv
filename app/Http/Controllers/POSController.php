@@ -6,20 +6,75 @@ use Illuminate\Http\Request;
 use Illuminate\Pagination\Paginator;
 
 use App\Models\Item;
+use App\Models\Category;
 use App\Models\Sale;
 use App\Models\SaleItem;
+use App\Models\DailySale;
+
+use Carbon\Carbon;
 
 class POSController extends Controller
 {
-  public function sell(Request $request) {
+  public function cashier(Request $request) {
     $isSuccess = $request->get('success') ? $request->get('success') : null;
+    $user = $request->get('user');
 
-    $items = Item::select('id', 'sku', 'name', 'price', 'stock')->where('status', 1)->get();
+    $today = Carbon::today();
+    $dailySale = DailySale::whereDate('created_at', $today)->first();
+    if (!$dailySale || ($dailySale && $dailySale->closing_amount)) {
+      return view('pos.open_cashier', [
+        'user' => $user,
+        'isClosed' => $dailySale && $dailySale->closing_amount ? true : false
+      ]);
+    }
 
-    return view('pos.sell', [
+    $items = Item::select('id', 'sku', 'name', 'price', 'stock', 'category_id', 'sold_by_weight', 'sold_by_length')
+                ->where('status', 1)
+                ->where('stock', '>', 0)
+                ->get();
+    $categories = Category::get();
+
+    return view('pos.cashier', [
+      'categories' => json_encode($categories),
       'items' => json_encode($items),
       'success' => $isSuccess
     ]);
+  }
+
+  public function openCashier(Request $request) {
+    $user = $request->get('user');
+    $amount = $request->get('amount');
+
+    DailySale::create([
+      'opening_user_id' => $user->id,
+      'opening_amount' => $amount
+    ]);
+
+    return redirect('/cashier');
+  }
+
+  public function closeCashier(Request $request) {
+    $user = $request->get('user');
+    $closingAmount = $request->get('closingAmount');
+
+    $today = Carbon::today();
+    $dailySale = DailySale::with(['sales'])->whereDate('created_at', $today)->first();
+
+    if ($dailySale) {
+      $totalDailyAmount = 0;
+      foreach ($dailySale->sales as $sale) {
+        $totalDailyAmount = $totalDailyAmount + $sale->total_amount;
+      }
+
+      $dailySale->closing_user_id = $user->id;
+      $dailySale->closing_amount = $closingAmount;
+      $dailySale->sales_count = $dailySale->sales->count();
+      $dailySale->sales_amount = $totalDailyAmount;
+      $dailySale->difference_amount = $closingAmount - $totalDailyAmount;
+      $dailySale->save();
+    }
+
+    return redirect('/cashier');
   }
 
   public function sales(Request $request) {
@@ -47,16 +102,24 @@ class POSController extends Controller
   }
 
   public function saveSales(Request $request) {
+    $user = $request->get('user');
     $items = json_decode($request->get('items'));
     $totalQuantity = $request->get('totalQuantity');
     $totalPrice = $request->get('totalPrice');
+    $amount = $request->get('amount');
     
 		$code = strtoupper("S".date("Y").date("m").date("d").uniqid(true));
+    $today = Carbon::today();
+    $dailySale = DailySale::whereDate('created_at', $today)->first();
 
     $sale = Sale::create([
+      'user_id' => $user->id,
+      'daily_sale_id' => $dailySale->id,
       'reference' => $code,
       'total_quantity' => $totalQuantity,
-      'total_amount' => $totalPrice
+      'total_amount' => $totalPrice,
+      'paid_amount' => (float)$amount,
+      'change_amount' => (float)$amount - (float)$totalPrice
     ]);
 
     foreach($items as $item) {
@@ -73,12 +136,27 @@ class POSController extends Controller
       $itemModel->save();
     }
 
-    return redirect('/sell?success='.$sale->id); 
+    return redirect('/cashier?success='.$sale->id); 
   }
 
   public function printSale(Request $request, $saleId) {
     $sale = Sale::where('id', $saleId)->with('items.item')->first();
+    $taxPercent = 12 / 100;
+    $vat = $sale->total_amount * $taxPercent;
 
-    return view('pos.receipt', ['sale' => $sale]);
+    return view('pos.receipt', ['sale' => $sale, 'vat' => $vat]);
+  }
+
+  public function dailySales(Request $request) {
+    $page = $request->get('page') ?? 1;
+    Paginator::currentPageResolver(function() use ($page) {
+      return $page;
+    });
+
+    $dailySales = DailySale::with(['openingUser', 'closingUser'])
+                          ->whereNotNull('closing_amount')
+                          ->paginate(20);
+
+    return view('pos.daily_sales', ['dailySales' => $dailySales]);
   }
 }

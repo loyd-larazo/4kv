@@ -7,7 +7,8 @@ use Illuminate\Pagination\Paginator;
 
 use App\Models\Transaction;
 use App\Models\TransactionItem;
-use App\Models\Laborer;
+use App\Models\User;
+use App\Models\Category;
 use App\Models\Item;
 use App\Models\Supplier;
 
@@ -20,61 +21,82 @@ class TransactionController extends Controller
       return $page;
     });
 
-		$suppliers = Supplier::where('status', 1)->get();
-		$laborers = Laborer::get();
-		$items = Item::select('id', 'sku', 'name', 'cost')->where('status', 1)->get();
-
     $transactions = Transaction::with(['items.item', 'items.supplier'])
 																->when($search, function($query) use ($search) {
 																	$query->where('transaction_code', 'like', "%$search%")
-																				->orWhere('laborer', 'like', "%$search%");
+																				->orWhere('stock_man', 'like', "%$search%")
+                                        ->orWhere('remarks', 'like', "%$search%");
 																})
                                 ->orderBy('created_at', 'desc')
                                 ->paginate(20);
 
 		return view('inventory.transactions', [
-			'transactions' => $transactions, 
-			'laborers' => $laborers, 
-			'suppliers' => json_encode($suppliers), 
-			'items' => json_encode($items),
+			'transactions' => $transactions,
 			'search' => $search
 		]);
 	}
 
+  public function addTransactionPage(Request $request) {
+    $user = $request->get('user');
+    $suppliers = Supplier::where('status', 1)->get();
+		$items = Item::select('id', 'sku', 'name', 'price', 'cost', 'stock', 'category_id', 'sold_by_weight', 'sold_by_length')
+                ->where('status', 1)
+                ->where('stock', '>', 0)
+                ->get();
+    $categories = Category::get();
+
+    return view('inventory.add_transaction', [
+      'user' => $user,
+			'suppliers' => json_encode($suppliers), 
+			'items' => json_encode($items),
+			'categories' => json_encode($categories),
+		]);
+  }
+
 	public function transaction(Request $request) {
-		$laborer = $request->get('laborer');
+		$user = $request->get('user');
 		$remarks = $request->get('remarks');
 		$items = json_decode($request->get('items'));
 		$code = strtoupper(date("Y").date("m").date("d").uniqid(true));
-		$laborerModel = Laborer::where('id', $laborer)->first();
 
 		$transaction = Transaction::create([
 			'transaction_code' => $code,
+      'user_id' => $user->id,
+      'stock_man' => $user->firstname . " " . $user->lastname,
 			'total_quantity' => 0,
 			'total_amount' => 0,
-			'laborer_id' => $laborer,
-			'laborer' => $laborerModel->firstname." ".$laborerModel->lastname,
 			'remarks' => $remarks
 		]);
 
 		$totalCost = 0;
 		$totalQuantity = 0;
 		foreach($items as $item) {
-			$totalCost += (float)$item->cost;
-			$totalQuantity += (int)$item->quantity;
-			$itemTotalCost = (float)$item->cost * (int)$item->quantity;
+      if ($item->sold_by_weight || $item->sold_by_length) {
+        $totalQuantity += (float)$item->quantity;
+        $itemTotalCost = (float)$item->cost * (float)$item->quantity;
+      } else {
+        $totalQuantity += (int)$item->quantity;
+        $itemTotalCost = (float)$item->cost * (int)$item->quantity;
+      }
+
+      $totalCost += $itemTotalCost;
 
 			TransactionItem::create([
 				'transaction_id' => $transaction->id,
 				'item_id' => $item->id,
-				'supplier_id' => $item->supplier,
+				'supplier_id' => $item->supplier_id,
 				'quantity' => $item->quantity,
 				'amount' => $item->cost,
 				'total_amount' => $itemTotalCost,
 			]);
 
       $itemModel = Item::where('id', $item->id)->first();
-      $itemModel->stock = (int)$itemModel->stock + (int)$item->quantity;
+      if ($itemModel->sold_by_weight || $itemModel->sold_by_length) {
+        $itemModel->stock = (float)$itemModel->stock + (float)$item->quantity;
+      } else {
+        $itemModel->stock = (int)$itemModel->stock + (int)$item->quantity;
+      }
+      
       $itemModel->save();
 		}
 

@@ -51,8 +51,8 @@
   <table class="table">
     <thead>
       <tr>
-        <th scope="col">Reference</th>
-        <th scope="col">Total Quantity</th>
+        <th class="mobile-col-sm" scope="col">Reference</th>
+        <th class="mobile-col-md" scope="col">Total Quantity</th>
         <th scope="col">Total Amount</th>
         <th scope="col">Date</th>
         <th scope="col"></th>
@@ -66,8 +66,8 @@
             $transDate = getDate($strDate);
           ?>
           <tr>
-            <td>{{ $sale->reference }}</td>
-						<td>{{ $sale->total_quantity }}</td>
+            <td class="mobile-col-sm">{{ $sale->reference }}</td>
+						<td class="mobile-col-md">{{ $sale->total_quantity }}</td>
 						<td>P{{ number_format($sale->total_amount) }}</td>
 						<td>{{ $transDate['month']." ".$transDate['mday'].", ".$transDate['year'] }}</td>
             <td>
