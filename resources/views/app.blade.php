@@ -18,6 +18,10 @@
   </head>
   <body>
 
+    <?php 
+      $user = Session::get('user');
+    ?>
+
     <!--Main Navigation-->
     <nav class="navbar navbar-expand-lg navbar-light bg-light">
       <div class="container-fluid">
@@ -30,79 +34,81 @@
 
         <div class="collapse navbar-collapse" id="navbarSupportedContent">
           <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+            @if(in_array($user->type, ["admin", "cashier"]))
+              <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle {{ in_array(request()->route()->getName(), ['sales','cashier', 'dailySales', 'returnItems']) ? 'text-primary' : '' }}" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                  <i class="fas fa-chart-area fa-fw me-3"></i><span>POS</span>
+                </a>
+                <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+                  <li>
+                    <a href="/cashier" class="dropdown-item {{ in_array(request()->route()->getName(), ['cashier']) ? 'text-primary' : '' }}">
+                      <i class="fa-solid fa-cash-register me-3"></i><span>Cashier</span>
+                    </a>
+                  </li>
+                  <li>
+                    <a href="/sales" class="dropdown-item {{ in_array(request()->route()->getName(), ['sales']) ? 'text-primary' : '' }}">
+                      <i class="fa-solid fa-file-invoice me-3"></i><span>Sales</span>
+                    </a>
+                  </li>
+                  <li>
+                    <a href="/daily-sales" class="dropdown-item {{ in_array(request()->route()->getName(), ['dailySales']) ? 'text-primary' : '' }}">
+                      <i class="fa-regular fa-calendar-check me-3"></i><span>Daily Sales</span>
+                    </a>
+                  </li>
+                  <li>
+                    <a href="/return-items" class="dropdown-item {{ in_array(request()->route()->getName(), ['returnItems']) ? 'text-primary' : '' }}">
+                      <i class="fa-solid fa-right-left me-3"></i><span>Return Items</span>
+                    </a>
+                  </li>
+                </ul>
+              </li>
+            @endif
             <li class="nav-item dropdown">
-              <a class="nav-link dropdown-toggle {{ in_array(request()->route()->getName(), ['sales','cashier']) ? 'active' : '' }}" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                <i class="fas fa-chart-area fa-fw me-3"></i><span>POS</span>
-              </a>
-              <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
-                <li>
-                  <a href="/cashier" class="dropdown-item">
-                    <i class="fa-solid fa-cash-register me-3"></i><span>Cashier</span>
-                  </a>
-                </li>
-                <li>
-                  <a href="/sales" class="dropdown-item }}">
-                    <i class="fa-solid fa-file-invoice me-3"></i><span>Sales</span>
-                  </a>
-                </li>
-                <li>
-                  <a href="/daily-sales" class="dropdown-item }}">
-                    <i class="fa-regular fa-calendar-check me-3"></i><span>Daily Sales</span>
-                  </a>
-                </li>
-              </ul>
-            </li>
-            <li class="nav-item dropdown">
-              <a class="nav-link dropdown-toggle {{ in_array(request()->route()->getName(), ['items','categories','transactions','suppliers'])  ? 'active' : '' }}" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+              <a class="nav-link dropdown-toggle {{ in_array(request()->route()->getName(), ['items','categories','transactions', 'addTransactionPage','suppliers'])  ? 'text-primary' : '' }}" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                 <i class="fa-solid fa-warehouse me-3"></i><span>Inventory</span>
               </a>
               <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
                 <li>
-                  <a href="/items" class="dropdown-item">
+                  <a href="/items" class="dropdown-item {{ in_array(request()->route()->getName(), ['items'])  ? 'text-primary' : '' }}">
                     <i class="fa-solid fa-boxes-packing me-3"></i><span>Items</span>
                   </a>
                 </li>
                 <li>
-                  <a href="/categories" class="dropdown-item }}">
+                  <a href="/categories" class="dropdown-item {{ in_array(request()->route()->getName(), ['categories'])  ? 'text-primary' : '' }}">
                     <i class="fa-solid fa-table-cells-large me-3"></i><span>Categories</span>
                   </a>
                 </li>
-                <li>
-                  <a href="/transactions" class="dropdown-item }}">
-                    <i class="fa-solid fa-cart-flatbed me-3"></i><span>Transactions</span>
-                  </a>
-                </li>
-                <li>
-                  <a href="/suppliers" class="dropdown-item }}">
-                    <i class="fa-solid fa-truck-field me-3"></i><span>Suppliers</span>
-                  </a>
-                </li>
+                @if(in_array($user->type, ["admin", "stock man"]))
+                  <li>
+                    <a href="/transactions" class="dropdown-item {{ in_array(request()->route()->getName(), ['transactions', 'addTransactionPage'])  ? 'text-primary' : '' }}">
+                      <i class="fa-solid fa-cart-flatbed me-3"></i><span>Transactions</span>
+                    </a>
+                  </li>
+                  <li>
+                    <a href="/suppliers" class="dropdown-item {{ in_array(request()->route()->getName(), ['suppliers'])  ? 'text-primary' : '' }}">
+                      <i class="fa-solid fa-truck-field me-3"></i><span>Suppliers</span>
+                    </a>
+                  </li>
+                @endif
               </ul>
             </li>
+            @if(in_array($user->type, ["admin"]))
+              <li>
+                <a class="nav-link {{ in_array(request()->route()->getName(), ['users'])  ? 'text-primary' : '' }}" href="/users">
+                  <i class="fa-solid fa-users me-3"></i><span>Users</span>
+                </a>
+              </li>
+            @endif
           </ul>
 
           <ul class="navbar-nav mb-2 mb-lg-0">
             <li class="nav-item dropdown">
-              <a class="nav-link dropdown-toggle {{ in_array(request()->route()->getName(), ['settings'])  ? 'active' : '' }}" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                <i class="fa-solid fa-gears me-3"></i><span>Settings</span>
+              <span class="nav-link">Welcome {{ $user->firstname ." ". $user->lastname }}</span>
+            </li>
+            <li class="nav-item dropdown">
+              <a class="nav-link" href="/logout">
+                <i class="fa-solid fa-right-from-bracket me-2"></i><span>Logout</span>
               </a>
-              <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
-                <li>
-                  <a href="/items" class="dropdown-item">
-                    <i class="fa-solid fa-boxes-packing me-3"></i><span>Config</span>
-                  </a>
-                </li>
-                <li>
-                  <a href="/users" class="dropdown-item }}">
-                    <i class="fa-solid fa-table-cells-large me-3"></i><span>Users</span>
-                  </a>
-                </li>
-                <li>
-                  <a href="/logout" class="dropdown-item }}">
-                    <i class="fa-solid fa-cart-flatbed me-3"></i><span>Logout</span>
-                  </a>
-                </li>
-              </ul>
             </li>
           </ul>
         </div>

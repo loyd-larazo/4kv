@@ -1,6 +1,9 @@
 @extends('app')
 
 @section('content')
+  <?php 
+    $user = Session::get('user');
+  ?>
   <nav class="navbar navbar-light bg-light">
     <h1>Items</h1>
 
@@ -13,16 +16,18 @@
         </select>
       </div>
       <div class="col-auto">
-        <input type="text" class="form-control" placeholder="Search SKU or Item" name="search" value="{{$search}}">
+        <input type="text" class="form-control" placeholder="Search SKU or Item" name="search" value="{{$search}}" autocomplete="off">
       </div>
       <div class="col-auto">
         <input type="submit" class="form-control btn-outline-success" value="Search"/>
       </div>
     </form>
 
-    <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#itemsModal" id="addItem">
-      Add Item
-    </button>
+    @if(in_array($user->type, ["admin", "stock man"]))
+      <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#itemsModal" id="addItem">
+        Add Item
+      </button>
+    @endif
   </nav>
 
   @if(\Session::get('error'))
@@ -66,14 +71,16 @@
 						<td>{{ $item->stock }}</td>
 						<td class="mobile-col-md">{{ $item->status == 1 ? 'Active' : 'Disabled' }}</td>
             <td>
-              <button 
-                class="btn btn-sm btn-outline-warning edit-item" 
-                data-bs-toggle="modal" 
-                data-bs-target="#itemsModal" 
-                data-id="{{ $item->id }}" 
-                data-json="{{ json_encode($item) }}">
-                <i class="fa-solid fa-pen-to-square"></i>
-              </button>
+              @if(in_array($user->type, ["admin", "stock man"]))
+                <button 
+                  class="btn btn-sm btn-outline-warning edit-item" 
+                  data-bs-toggle="modal" 
+                  data-bs-target="#itemsModal" 
+                  data-id="{{ $item->id }}" 
+                  data-json="{{ json_encode($item) }}">
+                  <i class="fa-solid fa-pen-to-square"></i>
+                </button>
+              @endif
               <a href="/item/{{ $item->sku }}/barcode" target="_blank" class="btn btn-sm btn-outline-primary barcode-item">
                 <i class="fa-solid fa-barcode"></i>
               </a>
@@ -111,7 +118,7 @@
   <div class="modal fade" id="itemsModal" tabindex="-1" aria-labelledby="itemsModalLabel" aria-hidden="true">
     <div class="modal-dialog">
       <div class="modal-content">
-        <form action="/item" method="POST">
+        <form action="/item" method="POST" id="addOrEditForm">
           <input type="hidden" name="_token" value="{{ csrf_token() }}" />
           <input type="hidden" name="id" />
           <div class="modal-header">
@@ -119,24 +126,26 @@
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
           </div>
           <div class="modal-body">
+            <div id="modalError" class="alert alert-danger text-center d-none" role="alert"></div>
+
             <div class="mb-3" id="skuField">
               <label class="form-label">SKU</label>
-              <input type="text" class="form-control" name="sku" disabled>
+              <input type="text" class="form-control" name="sku" disabled autocomplete="off">
             </div>
 
             <div class="mb-3">
               <label class="form-label">Product Name</label>
-              <input type="text" class="form-control" name="name" required>
+              <input type="text" class="form-control" name="name" required autocomplete="off">
             </div>
 
             <div class="mb-3">
               <label class="form-label">Cost</label>
-              <input type="number" class="form-control" name="cost" required>
+              <input type="number" class="form-control" name="cost" required autocomplete="off">
             </div>
 
 						<div class="mb-3">
               <label class="form-label">Price</label>
-              <input type="number" class="form-control" name="price" required>
+              <input type="number" class="form-control" name="price" required autocomplete="off">
             </div>
 
 						<div class="mb-3">
@@ -168,7 +177,7 @@
 
 						<div class="mb-3" id="stockField">
               <label class="form-label">Stock</label>
-              <input type="number" class="form-control" name="stock" required>
+              <input type="number" class="form-control" name="stock" required autocomplete="off">
             </div>
 
 						<div class="mb-3">
@@ -199,12 +208,25 @@
         $('#type').html("Add");
         $('#skuField').hide();
         $('#stockField').show();
+        $('#modalError').html("").addClass('d-none');
+
+        $('input[name="id"]').val("");
+        $('input[name="sku"]').val("");
+        $('input[name="name"]').val("");
+        $('input[name="cost"]').val("");
+        $('input[name="price"]').val("");
+        $('textarea[name="description"]').val("");
+        $('select[name="sold_by"]').val("");
+        $('select[name="category"]').val("");
+        $('input[name="stock"]').val("");
+        $('select[name="status"]').val("");
       });
 
       $('.edit-item').click(function() {
         $('#type').html("Edit");
 				$('#skuField').show();
 				$('#stockField').hide();
+        $('#modalError').html("").addClass('d-none');
         var data = $(this).data('json');
         var soldBy = data.sold_by_weight ? "weight" : (data.sold_by_length ? 'length' : 'stock');
 
@@ -215,7 +237,7 @@
         $('input[name="price"]').val(data.price);
         $('textarea[name="description"]').val(data.description);
         $('select[name="sold_by"]').val(soldBy);
-        $('select[name="category"]').val(data.category);
+        $('select[name="category"]').val(data.category_id);
         $('input[name="stock"]').val(data.stock);
         $('select[name="status"]').val(data.status);
       });
@@ -230,6 +252,28 @@
         location.href = `/items?page=${page}`;
       });
 
+      $('#addOrEditForm').submit(function(e) {
+        e.preventDefault();
+        $('#modalError').html("").addClass('d-none');
+
+        var sku = $('input[name="sku"]').val();
+        var name = $('input[name="name"]').val();
+        var category = $('select[name="category"]').val();
+        var skuURI = sku ? `&sku=${sku}` : '';
+
+        $.ajax({
+          type: 'GET',
+          dataType: 'json',
+          url: `/validate/item/category/${category}?name=${name}${skuURI}`,
+          success: (data) => {
+            if (data.data) {
+              $('#modalError').html("Item with the same name and category is already exists.").removeClass('d-none');
+            } else {
+              $(this).unbind('submit').submit();
+            }
+          }
+        });
+      })
     });
   </script>
 @endsection

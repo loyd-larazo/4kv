@@ -20,14 +20,6 @@
 
     <input type="hidden" name="_token" value="{{ csrf_token() }}" />
     <div class="form-group mt-3">
-      <label for="username">Username</label>
-      <input type="text" name="username" class="form-control" id="username" placeholder="Username"  value="{{ isset($username) ? $username : '' }}">
-    </div>
-    <div class="form-group mt-3">
-      <label for="password">Password</label>
-      <input type="password" name="password" class="form-control" id="password" placeholder="Password">
-    </div>
-    <div class="form-group mt-3">
       <label for="warningLimit">Items Warning Limit</label>
       <input type="number" name="warning-limit" class="form-control" id="warningLimit" placeholder="Warning Limit" value="{{ isset($warning_limit) ? $warning_limit : '' }}">
     </div>

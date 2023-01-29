@@ -39,6 +39,9 @@ Route::middleware([ValidateUser::class])->group(function () {
   Route::post('/item', [ItemController::class, 'updateOrCreateItem']);
   Route::delete('/item/{id}', [ItemController::class, 'destroyItem']);
   Route::get('/item/{sku}/barcode', [ItemController::class, 'generateBarcode']);
+  Route::get('/validate/item/category/{categoryId}', [ItemController::class, 'validateProductName']);
+  Route::get('/return-items', [ItemController::class, 'returnItems'])->name('returnItems');
+  Route::post('/return-items/{salesId}', [ItemController::class, 'saveReturnItems'])->name('saveReturnItems');
 
   Route::get('/suppliers', [ItemController::class, 'suppliers'])->name('suppliers');
   Route::post('/supplier', [ItemController::class, 'updateOrCreateSupplier']);
@@ -55,7 +58,7 @@ Route::middleware([ValidateUser::class])->group(function () {
   Route::post('/cashier/close', [POSController::class, 'closeCashier'])->name('closeCashier');
   Route::get('/sales', [POSController::class, 'sales'])->name('sales');
   Route::post('/sales', [POSController::class, 'saveSales']);
-  Route::get('/daily-sales', [POSController::class, 'dailySales']);
+  Route::get('/daily-sales', [POSController::class, 'dailySales'])->name('dailySales');
   Route::get('/sale/{saleId}', [POSController::class, 'printSale']);
 
   Route::get('/logout', [AppController::class, 'logout']);

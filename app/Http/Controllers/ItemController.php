@@ -8,6 +8,10 @@ use Illuminate\Pagination\Paginator;
 use App\Models\Category;
 use App\Models\Item;
 use App\Models\Supplier;
+use App\Models\Sale;
+use App\Models\SaleItem;
+use App\Models\DailySale;
+use Carbon\Carbon;
 
 use DNS1D;
 
@@ -58,6 +62,7 @@ class ItemController extends Controller
 		$sold_by = $request->get('sold_by');
 		$stock = $request->get('stock');
 		$status = $request->get('status');
+		$isAjax = $request->get('isAjax');
 		
 		$data = [
 			'name' => $name,
@@ -79,6 +84,13 @@ class ItemController extends Controller
 			Item::create($data);
 		}
 
+		if ($isAjax) {
+			$items = Item::select('id', 'sku', 'name', 'price', 'cost', 'stock', 'category_id', 'sold_by_weight', 'sold_by_length')
+										->where('status', 1)
+										->where('stock', '>', 0)
+										->get();
+			return response()->json(['data' => $items]);
+		}
 		return redirect()->back()->with('success', 'Item has been saved!'); 
 	}
 
@@ -185,5 +197,91 @@ class ItemController extends Controller
 		}
 
 		return redirect()->back()->with('success', 'Supplier has been saved!'); 
+	}
+
+	public function validateProductName(Request $request, $categoryId) {
+		$name = $request->get('name');
+		$sku = $request->get('sku');
+
+		$item = Item::where('name', $name)
+								->where('category_id', $categoryId)
+								->when($sku, function($query) use ($sku) {
+									$query->whereNot('sku', $sku);
+								})
+								->first();
+
+		return response()->json(['data' => $item ? true : false]);
+	}
+
+	public function returnItems(Request $request) {
+		$page = $request->get('page') ?? 1;
+		$search = $request->get('search');
+
+		$today = Carbon::today();
+    $dailySale = DailySale::whereDate('created_at', $today)->first();
+
+		Paginator::currentPageResolver(function() use ($page) {
+      return $page;
+    });
+
+		$returns = Sale::when($search, function($query) use ($search) {
+										$query->where('reference', $search);
+									})
+									->orWhereHas('items', function($query) use ($search) {
+										$query->whereHas('item', function($query) use ($search) {
+											if ($search) {
+												$query->where('name', 'like', "%$search%");
+											}
+										});
+									})
+									->where('type', 'return')
+									->with('items.item', 'user')
+									->orderBy('created_at', 'desc')
+									->paginate(20);
+
+		$sales = Sale::where('type', 'sales')
+								->with(['items.item'])
+								->get();
+
+		return view('pos.return_items', [
+			'returns' => $returns,
+			'sales' => json_encode($sales),
+			'dailySale' => $dailySale
+    ]);
+	}
+
+	public function saveReturnItems(Request $request, $salesId) {
+		$items = json_decode($request->get('items'));
+		$totalQty = $request->get('totalQty');
+		$totalAmount = $request->get('totalAmount');
+		$user = $request->get('user');
+
+		$today = Carbon::today();
+    $dailySale = DailySale::whereDate('created_at', $today)->first();
+
+		$sales = Sale::where('id', $salesId)->first();
+		$returnSale = Sale::create([
+			'user_id' => $user->id,
+			'daily_sale_id' => $dailySale->id,
+			'reference' => $sales->reference,
+			'total_quantity' => $totalQty,
+			'total_amount' => $totalAmount,
+			'paid_amount' => 0,
+			'change_amount' => 0,
+			'type' => 'return'
+		]);
+
+		foreach ($items as $item) {
+			SaleItem::create([
+				'sale_id' => $returnSale->id,
+				'item_id' => $item->item_id,
+				'quantity' => $item->quantity,
+				'amount' => $item->amount,
+				'total_amount' => $item->total_amount,
+				'type' => 'return'
+			]);
+		}
+
+		return redirect()->back()->with('success', 'Items has been returned!'); 
 	}
 }

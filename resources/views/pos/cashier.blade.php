@@ -119,6 +119,9 @@
           <input type="hidden" name="_token" value="{{ csrf_token() }}" />
           <div class="modal-body">
             <div class="mb-3">
+              <label for="closingAmount" class="form-label">Opening Amount: P{{ number_format($dailySale->opening_amount) }}</label>
+            </div>
+            <div class="mb-3">
               <label for="closingAmount" class="form-label">Closing Amount </label>
               <input type="number" class="form-control" id="closingAmount" name="closingAmount">
             </div>

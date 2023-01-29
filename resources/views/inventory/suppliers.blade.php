@@ -13,7 +13,7 @@
         </select>
       </div>
       <div class="col-auto">
-        <input type="text" class="form-control" placeholder="Search Supplier" name="search" value="{{$search}}">
+        <input type="text" class="form-control" placeholder="Search Supplier" name="search" value="{{$search}}" autocomplete="off">
       </div>
       <div class="col-auto">
         <input type="submit" class="form-control btn-outline-success" value="Search"/>
@@ -110,17 +110,17 @@
           <div class="modal-body">
             <div class="mb-3">
               <label class="form-label">Name</label>
-              <input type="text" class="form-control" name="name" required>
+              <input type="text" class="form-control" name="name" required autocomplete="nope">
             </div>
 
             <div class="mb-3">
               <label class="form-label">Contact Person</label>
-              <input type="text" class="form-control" name="contact_person" required>
+              <input type="text" class="form-control" name="contact_person" required autocomplete="nope">
             </div>
 
             <div class="mb-3">
               <label class="form-label">Contact Number</label>
-              <input type="number" class="form-control" name="contact_number" required>
+              <input type="number" class="form-control" name="contact_number" required autocomplete="nope">
             </div>
 
             <div class="mb-3">

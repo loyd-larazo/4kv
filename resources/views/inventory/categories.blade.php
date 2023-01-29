@@ -1,6 +1,9 @@
 @extends('app')
 
 @section('content')
+  <?php 
+    $user = Session::get('user');
+  ?>
   <nav class="navbar navbar-light bg-light">
     <h1>Categories</h1>
 
@@ -13,16 +16,18 @@
         </select>
       </div>
       <div class="col-auto">
-        <input type="text" class="form-control" placeholder="Search Category" name="search" value="{{$search}}">
+        <input type="text" class="form-control" placeholder="Search Category" name="search" value="{{$search}}" autocomplete="off">
       </div>
       <div class="col-auto">
         <input type="submit" class="form-control btn-outline-success" value="Search"/>
       </div>
     </form>
 
-    <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#categoryModal" id="addCategory">
-      Add Category
-    </button>
+    @if(in_array($user->type, ["admin", "stock man"]))
+      <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#categoryModal" id="addCategory">
+        Add Category
+      </button>
+    @endif
   </nav>
 
   @if(\Session::get('error'))
@@ -42,7 +47,9 @@
       <tr>
         <th scope="col">Name</th>
         <th scope="col">Status</th>
-        <th scope="col"></th>
+        @if(in_array($user->type, ["admin", "stock man"]))
+          <th scope="col"></th>
+        @endif
       </tr>
     </thead>
     <tbody>
@@ -51,24 +58,26 @@
           <tr class="{{ $category->status ? '' : 'table-danger' }}">
             <td class="text-capitalize">{{ $category->name }}</td>
             <td>{{ $category->status == 1 ? 'Active' : 'Disabled' }}</td>
-            <td>
-              <button 
-                class="btn btn-sm btn-outline-warning edit-category" 
-                data-bs-toggle="modal" 
-                data-bs-target="#categoryModal" 
-                data-id="{{ $category->id }}" 
-                data-json="{{ json_encode($category) }}">
-                <i class="fa-solid fa-pen-to-square"></i>
-              </button>
+            @if(in_array($user->type, ["admin", "stock man"]))
+              <td>
+                <button 
+                  class="btn btn-sm btn-outline-warning edit-category" 
+                  data-bs-toggle="modal" 
+                  data-bs-target="#categoryModal" 
+                  data-id="{{ $category->id }}" 
+                  data-json="{{ json_encode($category) }}">
+                  <i class="fa-solid fa-pen-to-square"></i>
+                </button>
 
-              <button 
-                class="btn btn-sm btn-outline-danger delete-category" 
-                data-bs-toggle="modal" 
-                data-bs-target="#deletecategoryModal" 
-                data-id="{{ $category->id }}" >
-                <i class="fa-solid fa-trash-can"></i>
-              </button>
-            </td>
+                <button 
+                  class="btn btn-sm btn-outline-danger delete-category" 
+                  data-bs-toggle="modal" 
+                  data-bs-target="#deletecategoryModal" 
+                  data-id="{{ $category->id }}" >
+                  <i class="fa-solid fa-trash-can"></i>
+                </button>
+              </td>
+            @endif
           </tr>
         @endforeach
       @else
@@ -112,7 +121,7 @@
           <div class="modal-body">
             <div class="mb-3">
               <label class="form-label">Name</label>
-              <input type="text" class="form-control" name="name" required>
+              <input type="text" class="form-control" name="name" required autocomplete="off">
             </div>
 
             <div class="mb-3">

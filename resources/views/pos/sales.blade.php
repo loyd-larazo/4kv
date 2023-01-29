@@ -15,7 +15,7 @@
       <div class="col-auto hidden" id="referenceSearch">
         <form class="row g-3 align-items-center" action="/sales" method="GET">
           <div class="col-auto">
-            <input type="text" class="form-control" placeholder="Search Supplier" name="search" value="{{$search}}">
+            <input type="text" class="form-control" placeholder="Search Reference or Items" name="search" value="{{$search}}" autocomplete="off">
           </div>
           <div class="col-auto">
             <input type="submit" class="form-control btn-outline-success" value="Search"/>
@@ -52,6 +52,7 @@
     <thead>
       <tr>
         <th class="mobile-col-sm" scope="col">Reference</th>
+        <th class="mobile-col-sm" scope="col">Cashier</th>
         <th class="mobile-col-md" scope="col">Total Quantity</th>
         <th scope="col">Total Amount</th>
         <th scope="col">Date</th>
@@ -67,6 +68,7 @@
           ?>
           <tr>
             <td class="mobile-col-sm">{{ $sale->reference }}</td>
+            <td class="mobile-col-sm">{{ $sale->user->firstname . ' ' . $sale->user->lastname }}</td>
 						<td class="mobile-col-md">{{ $sale->total_quantity }}</td>
 						<td>P{{ number_format($sale->total_amount) }}</td>
 						<td>{{ $transDate['month']." ".$transDate['mday'].", ".$transDate['year'] }}</td>

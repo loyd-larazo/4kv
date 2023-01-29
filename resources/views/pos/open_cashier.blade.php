@@ -12,7 +12,7 @@
       <input type="hidden" name="_token" value="{{ csrf_token() }}" />
       <div class="mb-3">
         <label for="cashier" class="form-label">Cashier</label>
-        <input type="text" class="form-control" name="cashier" id="cashier" value="{{ $user->firstname . " " . $user->lastname}}" disabled>
+        <input type="text" class="form-control" name="cashier" id="cashier" value="{{ $user->firstname . " " . $user->lastname}}" disabled autocomplete="off">
       </div>
       <div class="mb-3">
         <label for="amount" class="form-label">Opening Amount</label>

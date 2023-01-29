@@ -21,11 +21,18 @@ class TransactionController extends Controller
       return $page;
     });
 
-    $transactions = Transaction::with(['items.item', 'items.supplier'])
+    $transactions = Transaction::with(['items.supplier', 'items.item'])
 																->when($search, function($query) use ($search) {
 																	$query->where('transaction_code', 'like', "%$search%")
 																				->orWhere('stock_man', 'like', "%$search%")
                                         ->orWhere('remarks', 'like', "%$search%");
+																})
+																->orWhereHas('items', function($query) use ($search) {
+																	$query->whereHas('item', function($query) use ($search) {
+																		if ($search) {
+																			$query->where('name', 'like', "%$search%");
+																		}
+																	});
 																})
                                 ->orderBy('created_at', 'desc')
                                 ->paginate(20);
@@ -43,7 +50,7 @@ class TransactionController extends Controller
                 ->where('status', 1)
                 ->where('stock', '>', 0)
                 ->get();
-    $categories = Category::get();
+    $categories = Category::orderBy('name', 'asc')->get();
 
     return view('inventory.add_transaction', [
       'user' => $user,

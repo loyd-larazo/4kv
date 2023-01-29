@@ -32,12 +32,13 @@ class POSController extends Controller
                 ->where('status', 1)
                 ->where('stock', '>', 0)
                 ->get();
-    $categories = Category::get();
+    $categories = Category::orderBy('name', 'asc')->get();
 
     return view('pos.cashier', [
       'categories' => json_encode($categories),
       'items' => json_encode($items),
-      'success' => $isSuccess
+      'success' => $isSuccess,
+      'dailySale' => $dailySale
     ]);
   }
 
@@ -70,7 +71,7 @@ class POSController extends Controller
       $dailySale->closing_amount = $closingAmount;
       $dailySale->sales_count = $dailySale->sales->count();
       $dailySale->sales_amount = $totalDailyAmount;
-      $dailySale->difference_amount = $closingAmount - $totalDailyAmount;
+      $dailySale->difference_amount = $closingAmount - ($totalDailyAmount + $dailySale->opening_amount);
       $dailySale->save();
     }
 
@@ -80,18 +81,28 @@ class POSController extends Controller
   public function sales(Request $request) {
     $page = $request->get('page') ?? 1;
     $search = $request->get('search');
-    $date = $request->get('date') ? $request->get('date') : date('Y-m-d');
+    $date = $request->get('date') ? $request->get('date') : ($search ? null : date('Y-m-d'));
     Paginator::currentPageResolver(function() use ($page) {
       return $page;
     });
 
-    $sales = Sale::when($date, function($query) use ($date) {
-                    $query->whereDate('created_at', $date);
+    $sales = Sale::where('type', 'sales')
+                  ->where(function($query) use ($date, $search) {
+                    $query->when($date, function($query) use ($date) {
+                      $query->whereDate('created_at', $date);
+                    })
+                    ->when($search, function($query) use ($search) {
+                      $query->where('reference', $search);
+                    })
+                    ->orWhereHas('items', function($query) use ($search) {
+                      $query->whereHas('item', function($query) use ($search) {
+                        if ($search) {
+                          $query->where('name', 'like', "%$search%");
+                        }
+                      });
+                    });
                   })
-                  ->when($search, function($query) use ($search) {
-                    $query->where('reference', $search);
-                  })
-                  ->with('items.item')
+                  ->with('items.item', 'user')
                   ->orderBy('created_at', 'desc')->paginate(20);
 
     return view('pos.sales', [
@@ -155,6 +166,7 @@ class POSController extends Controller
 
     $dailySales = DailySale::with(['openingUser', 'closingUser'])
                           ->whereNotNull('closing_amount')
+                          ->orderBy('created_at', 'desc')
                           ->paginate(20);
 
     return view('pos.daily_sales', ['dailySales' => $dailySales]);

@@ -9,6 +9,18 @@
     </span>
   </nav>
 
+  <div class="row justify-content-end mx-0 px-0">
+    <div class="col-12 col-lg-3 align-self-end row mx-0 px-0">
+      <label class="col-auto pt-2">Filter Report: </label>
+      <select class="form-control col" id="filterReport">
+        <option {{$reportBy == "Daily" ? "selected" : ""}} value="Daily">Daily</option>
+        <option {{$reportBy == "Weekly" ? "selected" : ""}} value="Weekly">Weekly</option>
+        <option {{$reportBy == "Monthly" ? "selected" : ""}} value="Monthly">Monthly</option>
+        <option {{$reportBy == "Quarterly" ? "selected" : ""}} value="Quarterly">Quarterly</option>
+        <option {{$reportBy == "Yearly" ? "selected" : ""}} value="Yearly">Yearly</option>
+      </select>
+    </div>
+  </div>
   <div id="chartContainer" style="height: 370px; width: 100%;"></div>
 
   <div class="mt-5">
@@ -89,39 +101,101 @@
 
   <script>
     $(function() {
-      var months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-
+      const reportBy = "{{$reportBy}}";
       setInterval(function() {
         const d = new Date();
         $('#time').html(`${d.getHours()}:${d.getMinutes()}:${d.getSeconds()}`);
       }, 1000);
 
-      var sales = JSON.parse(@json($sales));
-      sales.map(sale => {
-        var labelArr = sale.label.split(" ");
-        labelArr[0] = months[parseInt(labelArr[0]) - 1];
-        sale.label = labelArr.join(" ");
+      $('#filterReport').change(function() {
+        var type = $(this).val();
+        location.href=`/?reportBy=${type}`;
       });
-      if (sales) {
-        var options = {
-          animationEnabled: true,
-          title: {
-            text: "Monthly Sales"
-          },
-          axisY: {
-            title: "Item Sold",
-            suffix: " items"
-          },
-          axisX: {
-            title: "Month"
-          },
-          data: [{
-            type: "column",
-            yValueFormatString: "#,##0.0#"%"",
-            dataPoints: [...sales]
-          }]
-        };
-        $("#chartContainer").CanvasJSChart(options);
+      const today = new Date();
+
+      const weeks = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+      const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+      const quarters = [
+        ["January", "February", "March"],
+        ["April", "May", "June"],
+        ["July", "August", "September"],
+        ["October", "November", "December"],
+      ];
+      const currentMonthI = (today.getMonth() + 1);
+      const currentQuarter = quarters[Math.ceil(currentMonthI/3) - 1];
+      var currentYear = today.getFullYear();
+      var years = [];
+      const toYear = currentYear - 5;
+      for (currentYear; currentYear >= toYear; currentYear--) {
+        years.push(currentYear);
+      }
+
+      const xAxisLabel = {
+        Daily: "Last 30 days",
+        Weekly: `${months[today.getMonth()]} Sales`,
+        Monthly: "Months of the Year",
+        Quarterly: `${today.getFullYear()} Quarterly Report`,
+        Yearly: "Years"
+      };
+
+      renderReport();
+      
+      function renderReport() {
+        var sales = JSON.parse(@json($sales));
+
+        // Sort Monthly reports
+        if (reportBy == "Monthly") {
+          var salesToSort = {};
+          var finalSales = [];
+          sales.map(sale => {
+            var monthlyDate = sale.label.split(" ");
+            sale.month = parseInt(monthlyDate[0]);
+            sale.year = parseInt(monthlyDate[1]);
+
+            if (salesToSort[sale.year]) {
+              salesToSort[sale.year].push(sale);
+            } else {
+              salesToSort[sale.year] = [sale];
+            }
+          });
+
+          Object.keys(salesToSort).map(sts => {
+            var toConcat = salesToSort[sts].sort((a, b) => a.month > b.month ? 1 : -1);
+            finalSales = finalSales.concat(toConcat);
+          });
+          sales = finalSales
+        }
+
+        // Replace months to string
+        if (["Monthly", "Daily"].indexOf(reportBy) >= 0) {
+          sales.map(sale => {
+            var labelArr = sale.label.split(" ");
+            labelArr[0] = months[parseInt(labelArr[0]) - 1];
+            sale.label = labelArr.join(" ");
+          });
+        }
+
+        if (sales) {
+          var options = {
+            animationEnabled: true,
+            title: {
+              text: `${reportBy} Sales`
+            },
+            axisY: {
+              title: "Item Sold",
+              suffix: " items"
+            },
+            axisX: {
+              title: xAxisLabel[reportBy]
+            },
+            data: [{
+              type: "column",
+              yValueFormatString: "#,##0.0#"%"",
+              dataPoints: [...sales]
+            }]
+          };
+          $("#chartContainer").CanvasJSChart(options);
+        }
       }
 
       $('.page-select').change(function() {

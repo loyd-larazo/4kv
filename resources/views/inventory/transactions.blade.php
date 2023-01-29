@@ -6,7 +6,7 @@
 
     <form class="row g-3 align-items-center" action="/transactions" method="GET">
       <div class="col-auto">
-        <input type="text" class="form-control" placeholder="Search Transactions" name="search" value="{{$search}}">
+        <input type="text" class="form-control" placeholder="Search Items in Transactions" name="search" value="{{$search}}" autocomplete="off">
       </div>
       <div class="col-auto">
         <input type="submit" class="form-control btn-outline-success" value="Search"/>

@@ -14,6 +14,8 @@ use App\Models\Sale;
 use App\Models\SaleItem;
 use App\Models\Item;
 
+use Carbon\Carbon;
+
 class AppController extends Controller
 {
   public function loginPage(Request $request) {
@@ -49,20 +51,91 @@ class AppController extends Controller
 
   public function index(Request $request) {
     $page = $request->get('page') ?? 1;
-    $limit = (int)$request->session()->get('warning_limit');
+    $reportBy = $request->get('reportBy') ?? 'Daily';
+    // $limit = (int)$request->session()->get('warning_limit');
+    $limit = 15;
+    $topSelling = 100;
 
     Paginator::currentPageResolver(function() use ($page) {
       return $page;
     });
 
-    $sales = Sale::select(
-                  DB::raw('sum(total_amount) as y'), 
-                  DB::raw("DATE_FORMAT(created_at,'%m %Y') as label")
-                )
-                ->groupBy('label')
-                ->orderBy('label')
-                ->limit(12)
-                ->get();
+    $sales = [];
+    if ($reportBy == 'Daily') {
+      $last7Days = Carbon::today()->subDays(29);
+      $sales = Sale::select(
+                      DB::raw('sum(total_quantity) as y'), 
+                      DB::raw("DATE_FORMAT(created_at,'%m %d, %Y') as label"),
+                    )
+                  ->where('type', 'sales')
+                  ->whereDate('created_at', '>=', $last7Days)
+                  ->groupBy('label')
+                  ->orderBy('label')
+                  ->limit(30)
+                  ->get();
+    } else if ($reportBy == 'Weekly') {
+      $today = Carbon::now();
+      $year = $today->year;
+      $month = $today->month;
+      $weeks = $this->monthToWeeks($year, $month);
+      $salesWeek = [];
+      foreach ($weeks as $key => $week) {
+        $weekCount = $key + 1;
+        $salesWeek[] = Sale::select(
+                            DB::raw('sum(total_quantity) as y'),
+                            DB::raw("CONCAT('Week ', $weekCount) as label")
+                          )
+                          ->where('type', 'sales')
+                          ->whereBetween('created_at', [$week[0], $week[1]])
+                          ->first();
+      }
+      $sales = $salesWeek;
+    } else if ($reportBy == 'Monthly') {
+      $sales = Sale::select(
+                      DB::raw('sum(total_quantity) as y'), 
+                      DB::raw("DATE_FORMAT(created_at,'%m %Y') as label"),
+                    )
+                    ->where('type', 'sales')
+                    ->groupBy('label')
+                    ->orderBy('label')
+                    ->limit(12)
+                    ->get();
+    } else if ($reportBy == 'Quarterly') {
+      $today = Carbon::now();
+      $year = $today->year;
+      $months = [
+        ['from' => '01', 'to' => '03', 'days' => 31],
+        ['from' => '04', 'to' => '06', 'days' => 30],
+        ['from' => '07', 'to' => '09', 'days' => 30],
+        ['from' => '10', 'to' => '12', 'days' => 31],
+      ];
+
+      $salesQuarter = [];
+      foreach ($months as $key => $month) {
+        $quarter = $key + 1;
+        $startDate = $year."-".$month['from']."-01";
+        $endDate = $year."-".$month['to']."-".$month['days'];
+        $salesQuarter[] = Sale::select(
+                                DB::raw('sum(total_quantity) as y'),
+                                DB::raw("CONCAT('Quarter ', $quarter) as label")
+                              )
+                              ->where('type', 'sales')
+                              ->whereBetween('created_at', [$startDate, $endDate])
+                              ->first();
+      }
+
+      $sales = $salesQuarter;
+    } else if ($reportBy == 'Yearly') {
+      $sales = Sale::select(
+                      DB::raw('sum(total_quantity) as y'), 
+                      DB::raw("DATE_FORMAT(created_at, '%Y') as label"),
+                    )
+                    ->where('type', 'sales')
+                    ->groupBy('label')
+                    ->orderBy('label')
+                    ->limit(12)
+                    ->get();
+    }
 
     $lowStockItems = Item::where('stock', '<=', $limit)->paginate(20);
 
@@ -71,12 +144,14 @@ class AppController extends Controller
                                 DB::raw('sum(quantity) as sold'), 
                               )
                               ->with('item')
+                              ->havingRaw("sold >= $topSelling")
                               ->groupBy('item_id')
                               ->orderBy('sold', 'DESC')
                               ->limit(10)
                               ->get();
 
     return view('home', [
+      'reportBy' => $reportBy,
       'sales' => json_encode($sales),
       'lowStocks' => $lowStockItems,
       'topSelling' => $topSellingItems
@@ -114,6 +189,34 @@ class AppController extends Controller
     }
 
     return redirect()->back()->with('success', 'Settings has been updated!'); 
+  }
+
+  private function monthToWeeks($y, $m)
+  {
+      $weeks = [];
+      $month = $m;
+      $first_date = date("{$y}-{$m}-01");
+  
+      do {
+          $last_date = date("Y-m-d", strtotime($first_date. " +6 days"));
+          $month = date("m", strtotime($last_date));
+  
+          if ($month != $m) {
+              $last_date = date("Y-m-t", mktime(0, 0, 0, $m, 1, $y)); 
+  
+              if ($first_date > $last_date) {
+                  break;
+              }
+           }  
+  
+           $weeks[] = [$first_date, $last_date];
+  
+           $first_date = date("Y-m-d", strtotime($last_date. " +1 days"));
+  
+      } while($month == intval($m));
+  
+      return $weeks;    
+  
   }
   
 }

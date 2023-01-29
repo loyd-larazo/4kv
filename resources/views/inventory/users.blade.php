@@ -6,7 +6,7 @@
 
     <form class="row g-3 align-items-center" action="/users" method="GET">
       <div class="col-auto">
-        <input type="text" class="form-control" placeholder="Search User" name="search" value="{{$search}}">
+        <input type="text" class="form-control" placeholder="Search User" name="search" value="{{$search}}" autocomplete="off">
       </div>
       <div class="col-auto">
         <input type="submit" class="form-control btn-outline-success" value="Search"/>
@@ -127,23 +127,23 @@
             <div id="updatePassword" class="d-none">
               <div class="mb-3">
                 <label class="form-label">New Password</label>
-                <input type="password" class="form-control required" name="new_password">
+                <input type="password" class="form-control required" name="new_password" autocomplete="nope">
               </div>
               <div class="mb-3">
                 <label class="form-label">Confirm Password</label>
-                <input type="password" class="form-control required" name="confirm_password">
+                <input type="password" class="form-control required" name="confirm_password" autocomplete="nope">
               </div>
             </div>
 
             <div id="updateInfo">
               <div class="mb-3">
                 <label class="form-label">Username</label>
-                <input type="text" class="form-control required" name="username" required>
+                <input type="text" class="form-control required" name="username" required autocomplete="nope">
               </div>
 
               <div class="mb-3" id="addPassword">
                 <label class="form-label">Password</label>
-                <input type="password" class="form-control required" name="password">
+                <input type="password" class="form-control required" name="password" autocomplete="nope">
               </div>
               
               <div class="mb-3">
@@ -158,12 +158,12 @@
   
               <div class="mb-3">
                 <label class="form-label">First Name</label>
-                <input type="text" class="form-control required" name="firstname" required>
+                <input type="text" class="form-control required" name="firstname" required autocomplete="nope">
               </div>
   
               <div class="mb-3">
                 <label class="form-label">Last Name</label>
-                <input type="text" class="form-control required" name="lastname" required>
+                <input type="text" class="form-control required" name="lastname" required autocomplete="nope">
               </div>
   
               <div class="mb-3">
@@ -177,22 +177,22 @@
   
               <div class="mb-3">
                 <label class="form-label">Birthdate</label>
-                <input type="date" class="form-control required" name="birthdate" required>
+                <input type="date" class="form-control required" name="birthdate" required autocomplete="nope">
               </div>
   
               <div class="mb-3">
                 <label class="form-label">Contact Number</label>
-                <input type="text" class="form-control required" name="contact_number" required>
+                <input type="text" class="form-control required" name="contact_number" required autocomplete="nope">
               </div>
   
               <div class="mb-3">
                 <label class="form-label">Address</label>
-                <textarea class="form-control required" name="address" required></textarea>
+                <textarea class="form-control required" name="address" required autocomplete="nope"></textarea>
               </div>
   
               <div class="mb-3">
                 <label class="form-label">Salary</label>
-                <input type="number" class="form-control required" name="salary" required>
+                <input type="number" class="form-control required" name="salary" required autocomplete="nope">
               </div>
   
               <div class="mb-3">

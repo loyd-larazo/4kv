@@ -56,6 +56,9 @@
                 <i class="fa-solid fa-magnifying-glass"></i>
               </button>
             </div>
+            <div class="col-12 text-center">
+              Can't find item? Click <a href="#" id="addNewItem" data-bs-toggle="modal" data-bs-target="#itemsModal">here</a> to add new item.
+            </div>
             <hr class="mt-4"/>
           </div>
   
@@ -76,46 +79,6 @@
           </div>
         </div>
       </div>
-
-      {{-- <div class="mb-3" id="scanItems">
-        <label class="form-label">Scan Barcode or enter SKU</label>
-        <div class="row m-0 p-0">
-          <div class="col-5 p-0">
-            <input type="text" class="form-control" placeholder="SKU" id="sku"/>
-          </div>
-          <div class="col-7 fw-bold px-0">
-            @if(isset($suppliers))
-              <select class="form-select" name="supplier" id="supplier" required>
-                <option value="">Select Supplier</option>
-                @foreach(json_decode($suppliers) as $supplier)
-                  <option value="{{ $supplier->id }}">{{ $supplier->name }}</option>
-                @endforeach			
-              </select>
-            @endif
-          </div>
-        </div>
-        <div class="row m-0 p-0">
-          <div class="col-5 p-0 mt-2">
-            <input type="number" class="form-control" placeholder="Quantity" id="quantity"/>
-          </div>
-          <div class="col-5 fw-bold mt-2 px-0">
-            <input type="number" class="form-control" placeholder="Cost/Item" id="cost"/>
-          </div>
-          <div class="col-2 fw-bold mt-2 px-0">
-            <button class="btn btn-outline-primary" id="addItem">
-              <i class="fa-regular fa-square-plus"></i> Item
-            </button>
-          </div>
-        </div>
-        <div class="row m-0 p-0">
-          <div class="col-12 fw-bold mt-2">
-            SKU: <span id="searchedSku"></span>
-          </div>
-          <div class="col-12 fw-bold mt-2">
-            Name: <span id="searchedName"></span>
-          </div>
-        </div>
-      </div> --}}
 
       <div class="mb-3 mt-3 card transaction-items p-2">
         <h4>Transaction Items</h4>
@@ -142,6 +105,83 @@
     </div>
   </div>
 
+  <div class="modal fade" id="itemsModal" tabindex="-1" aria-labelledby="itemsModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <form action="/" method="POST" id="addItemForm">
+          <input type="hidden" name="_token" value="{{ csrf_token() }}" />
+          <div class="modal-header">
+            <h5 class="modal-title" id="itemsModalLabel">Add Item</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <div id="modalError" class="alert alert-danger text-center d-none" role="alert"></div>
+
+            <div class="mb-3">
+              <label class="form-label">Product Name</label>
+              <input type="text" class="form-control" name="name" required autocomplete="off">
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label">Cost</label>
+              <input type="number" class="form-control" name="cost" required autocomplete="off">
+            </div>
+
+						<div class="mb-3">
+              <label class="form-label">Price</label>
+              <input type="number" class="form-control" name="price" required autocomplete="off">
+            </div>
+
+						<div class="mb-3">
+              <label class="form-label">Description</label>
+              <textarea class="form-control" name="description" required></textarea>
+            </div>
+
+						@if(isset($categories))
+							<div class="mb-3">
+								<label class="form-label">Category</label>
+								<select class="form-select" name="category" required>
+									<option value="">Select Category</option>
+									@foreach(json_decode($categories) as $category)
+										<option value="{{ $category->id }}">{{ $category->name }}</option>
+									@endforeach			
+								</select>
+							</div>
+						@endif
+
+						<div class="mb-3">
+              <label class="form-label">Sold by</label>
+              <select class="form-select" name="sold_by" required>
+                <option value="">Select Option</option>
+                <option value="stock">Stock</option>
+                <option value="weight">Weight</option>
+                <option value="length">Length</option>
+              </select>
+            </div>
+
+						<div class="mb-3" id="stockField">
+              <label class="form-label">Stock</label>
+              <input type="number" class="form-control" name="stock" required autocomplete="off">
+            </div>
+
+						<div class="mb-3">
+              <label class="form-label">Status</label>
+              <select class="form-select" name="status" required>
+                <option value="">Select Option</option>
+                <option value="1">Active</option>
+                <option value="0">Disabled</option>
+              </select>
+            </div>
+
+          </div>
+          <div class="modal-footer">
+            <button type="submit" class="btn btn-outline-success">Save</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
   <script>
     $(function() {
       var productItems = JSON.parse(@json($items));
@@ -155,25 +195,28 @@
       });
 
       var itemSearch = productItems.map(item => {return {...item, label: item.name}});
-      $("#sku").autocomplete({
-        minLength: 0,
-        source: itemSearch,
-        focus: function( event, ui ) {
-          $("#sku").val( ui.item.label );
-          return false;
-        },
-        select: function( event, ui ) {
-          $("#sku").val( ui.item.label );
-          searchItems = [ui.item];
-          updateSearchItems();
-          return false;
-        }
-      })
-      .autocomplete("instance")._renderItem = function( ul, item ) {
-        return $( "<li>" )
-          .append(`<div>${item.label}<br>SKU: ${item.sku}</div>`)
-          .appendTo( ul );
-      };
+      initializeAutocomplete();
+      function initializeAutocomplete() {
+        $("#sku").autocomplete({
+          minLength: 0,
+          source: itemSearch,
+          focus: function( event, ui ) {
+            $("#sku").val( ui.item.label );
+            return false;
+          },
+          select: function( event, ui ) {
+            $("#sku").val( ui.item.label );
+            searchItems = [ui.item];
+            updateSearchItems();
+            return false;
+          }
+        })
+        .autocomplete("instance")._renderItem = function( ul, item ) {
+          return $( "<li>" )
+            .append(`<div>${item.label}<br>SKU: ${item.sku}</div>`)
+            .appendTo( ul );
+        };
+      }
 
       $("#category").change(function() {
         if ($(this).val()) {
@@ -339,6 +382,72 @@
             (j ? i.substr(0, j) + thouSep : "") +
             i.substr(j).replace(/(\decSep{3})(?=\decSep)/g, "$1" + thouSep) +
             (decPlaces ? decSep + Math.abs(number - i).toFixed(decPlaces).slice(2) : "");
+      }
+
+      $('#addNewItem').click(function() {
+        $('#modalError').html("").addClass('d-none');
+
+        $('input[name="name"]').val("");
+        $('input[name="cost"]').val("");
+        $('input[name="price"]').val("");
+        $('textarea[name="description"]').val("");
+        $('select[name="sold_by"]').val("");
+        $('select[name="category"]').val("");
+        $('input[name="stock"]').val("");
+        $('select[name="status"]').val("");
+      });
+
+      $.ajaxSetup({
+        headers: {
+          'X-CSRF-TOKEN': $('input[name="_token"]').val()
+        }
+      });
+
+      $('#addItemForm').submit(function(e) {
+        e.preventDefault();
+        $('#modalError').html("").addClass('d-none');
+
+        var name = $('input[name="name"]').val();
+        var category = $('select[name="category"]').val();
+
+        $.ajax({
+          type: 'GET',
+          dataType: 'json',
+          url: `/validate/item/category/${category}?name=${name}`,
+          success: (data) => {
+            if (data.data) {
+              $('#modalError').html("Item with the same name and category is already exists.").removeClass('d-none');
+            } else {
+              addNewItem();
+            }
+          }
+        });
+      });
+
+      function addNewItem() {
+        $.ajax({
+          type: 'POST',
+          dataType: 'json',
+          url: `/item`,
+          data: {
+            name: $('input[name="name"]').val(),
+            cost: $('input[name="cost"]').val(),
+            price: $('input[name="price"]').val(),
+            description: $('textarea[name="description"]').val(),
+            sold_by: $('select[name="sold_by"]').val(),
+            category: $('select[name="category"]').val(),
+            stock: $('input[name="stock"]').val(),
+            status: $('select[name="status"]').val(),
+            isAjax: true,
+          },
+          success: (data) => {
+            console.log(data.data);
+            productItems = data.data;
+            itemSearch = productItems.map(item => {return {...item, label: item.name}});
+            initializeAutocomplete();
+            $('#itemsModal').modal('hide');
+          }
+        });
       }
     });
   </script>
