@@ -69,12 +69,12 @@ class UserController extends Controller
           $user->save();
           return redirect()->back()->with('success', 'Password has been saved!'); 
         } else {
-          $data['password'] = app('hash')->make($password);
           User::where('id', $id)
               ->update($data);
         }
       }
     } else {
+			$data['password'] = app('hash')->make($password);
       User::create($data);
     }
     

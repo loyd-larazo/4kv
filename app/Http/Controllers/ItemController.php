@@ -60,7 +60,7 @@ class ItemController extends Controller
 		$description = $request->get('description');
 		$category = $request->get('category');
 		$sold_by = $request->get('sold_by');
-		$stock = $request->get('stock');
+		$stock = $request->get('stock') ?? 0;
 		$status = $request->get('status');
 		$isAjax = $request->get('isAjax');
 		
@@ -87,7 +87,6 @@ class ItemController extends Controller
 		if ($isAjax) {
 			$items = Item::select('id', 'sku', 'name', 'price', 'cost', 'stock', 'category_id', 'sold_by_weight', 'sold_by_length')
 										->where('status', 1)
-										->where('stock', '>', 0)
 										->get();
 			return response()->json(['data' => $items]);
 		}

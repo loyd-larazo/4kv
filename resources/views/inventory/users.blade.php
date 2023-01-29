@@ -14,7 +14,7 @@
     </form>
 
     <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#userModal" id="addUser">
-      Add Users
+      Add User
     </button>
   </nav>
 

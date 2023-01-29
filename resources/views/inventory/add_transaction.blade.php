@@ -91,6 +91,7 @@
               <th scope="col">Quantity</th>
               <th scope="col">Cost</th>
               <th scope="col">Total Cost</th>
+              <th scope="col"></th>
             </tr>
           </thead>
           <tbody id="items">
@@ -101,7 +102,7 @@
 
     <div class="modal-footer">
       <h4 class="me-4">Total Cost: P<span id="totalCost">0</span></h4>
-      <button type="submit" class="btn btn-outline-success" id="submitTransaction">Save</button>
+      <button type="submit" class="btn btn-outline-success" id="submitTransaction" disabled>Save</button>
     </div>
   </div>
 
@@ -157,11 +158,6 @@
                 <option value="weight">Weight</option>
                 <option value="length">Length</option>
               </select>
-            </div>
-
-						<div class="mb-3" id="stockField">
-              <label class="form-label">Stock</label>
-              <input type="number" class="form-control" name="stock" required autocomplete="off">
             </div>
 
 						<div class="mb-3">
@@ -301,7 +297,7 @@
         }
       }
 
-      function populateItems(item) {
+      function populateItems() {
         var html = "";
         var overallCost = 0;
         addedItems.map(aItem => {
@@ -317,12 +313,25 @@
               <td><input class="form-control added-item-qty" type="number" value="${aItem.quantity}" data-id="${aItem.id}" step="${(aItem.sold_by_weight || aItem.sold_by_length) ? '0.1' : '1'}"></td>
               <td><input class="form-control added-item-cost" type="number" placeholder="Cost" value="${aItem.cost}" data-id="${aItem.id}"></td>
               <td>${formatMoney(totalCost, 2, '.', ',')}</td>
+              <td>
+                <button data-id="${aItem.id}" class="btn btn-sm btn-danger delete-item">
+                  <i class="fa-solid fa-trash-can"></i>
+                </button>
+              </td>
             </tr>
           `;
         });
         $("#items").html(html);
         $("#totalCost").html(formatMoney(overallCost, 2, '.', ','));
 
+        $('.delete-item').click(function() {
+          var id = $(this).data('id');
+          var addItemIndex = addedItems.findIndex(ai => ai.id == id);
+          if (addItemIndex >= 0) {
+            addedItems.splice(addItemIndex, 1);
+            populateItems();
+          }
+        });
 
         $('.added-item-qty').on('change', function() {
           var itemId = $(this).data('id');
@@ -340,6 +349,12 @@
           addedItems[addedItemIndex].cost = $(this).val();
           populateItems();
         });
+
+        if (addedItems.length) {
+          $('#submitTransaction').removeAttr("disabled");
+        } else {
+          $('#submitTransaction').attr("disabled", "disabled");
+        }
       }
 
       $('#submitTransaction').click(function() {

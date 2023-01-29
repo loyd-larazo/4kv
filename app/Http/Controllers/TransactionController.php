@@ -48,7 +48,6 @@ class TransactionController extends Controller
     $suppliers = Supplier::where('status', 1)->get();
 		$items = Item::select('id', 'sku', 'name', 'price', 'cost', 'stock', 'category_id', 'sold_by_weight', 'sold_by_length')
                 ->where('status', 1)
-                ->where('stock', '>', 0)
                 ->get();
     $categories = Category::orderBy('name', 'asc')->get();
 
