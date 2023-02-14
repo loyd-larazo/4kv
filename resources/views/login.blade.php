@@ -14,6 +14,8 @@
       <script src="/bootstrap/js/bootstrap.min.js"></script>
       <script>
         $(function() {
+          sessionStorage.setItem('login', true);
+
           $('#typePasswordX-2').on('change paste keyup focus', function() {
             if ($(this).val()) {
               $(this).attr('type', 'password');

@@ -102,3 +102,44 @@
     display: none;
   }
 }
+
+.clear-input {
+  display: flex;
+}
+
+.clear-input button,
+.clear-input button:active,
+.clear-input button:focus,
+.clear-input button:focus-visible,
+.clear-input button:hover {
+  color: grey;
+  border-radius: 50%;
+  padding: 0px;
+  margin: 0px 0px 0px 6px;
+  border: none;
+  box-shadow: none;
+  outline: none;
+}
+
+.clear-input button:hover {
+  color: #4b4949;
+}
+
+.clear-input input,
+.clear-input input:focus,
+.clear-input input:focus-visible {
+  border: none;
+  padding: 0px;
+  margin: 0px;
+  box-shadow: none;
+}
+
+.table-header-fixed thead {
+  position: sticky;
+  top: 0;
+  background: #e9ecef;
+}
+
+.table-header-fixed thead th {
+  border: none;
+}

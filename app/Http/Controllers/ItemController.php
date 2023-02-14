@@ -19,8 +19,15 @@ class ItemController extends Controller
 {
   public function items(Request $request) {
     $search = $request->get('search');
-    $status = $request->get('status') == null ? 1 : $request->get('status');
+    $status = $request->get('status');
     $page = $request->get('page') ?? 1;
+		$status = $status == null ? 1 : $status;
+		$isZeroStock = 0;
+
+		if ($status < 0) {
+			$isZeroStock = 1; 
+			$status = null;
+		}
 
     $categories = Category::where('status', '1')
 													->get();
@@ -34,14 +41,17 @@ class ItemController extends Controller
 									$query->where('sku', 'like', "%$search%")
 												->orWhere('name', 'like', "%$search%");
 								})
-                ->where('status', $status)
                 ->when(isset($status), function($query) use ($status) {
-                  if ($status == 1) {
+									$query->where('status', $status);
+								})
+                ->when(isset($isZeroStock), function($query) use ($isZeroStock, $status) {
+                  if ($isZeroStock) {
+                    $query->where('stock', 0);
+                  } else if (!$isZeroStock && $status > 0) {
                     $query->where('stock', '>', 0);
-                  } else {
-                    $query->orWhere('stock', 0);
                   }
                 })
+								->orderBy('created_at', 'DESC')
 								->paginate(20);
 
 		return view('inventory.items', [
@@ -49,6 +59,7 @@ class ItemController extends Controller
 			'categories' => $categories, 
 			'search' => $search,
 			'status' => $status,
+			'isZeroStock' => $isZeroStock,
 		]);
 	}
 
@@ -110,6 +121,7 @@ class ItemController extends Controller
 														$query->where('name', 'like', "%$search%");
 													})
 													->where('status', $status)
+													->orderBy('created_at', 'DESC')
 													->paginate(20);
 
 		return view('inventory.categories', [
@@ -157,12 +169,15 @@ class ItemController extends Controller
     });
 
 		$suppliers = Supplier::when($search, function($query) use ($search) {
-														$query->where('name', 'like', "%$search%")
-																	->orWhere('contact_person', 'like', "%$search%")
-																	->orWhere('contact_number', 'like', "%$search%")
-																	->orWhere('address', 'like', "%$search%");
+														$query->where(function($query) use ($search) {
+															$query->where('name', 'like', "%$search%")
+																		->orWhere('contact_person', 'like', "%$search%")
+																		->orWhere('contact_number', 'like', "%$search%")
+																		->orWhere('address', 'like', "%$search%");
+														});
 													})
 													->where('status', $status)
+													->orderBy('created_at', 'DESC')
 													->paginate(20);
 
 		return view('inventory.suppliers', [

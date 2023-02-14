@@ -26,9 +26,12 @@ class AppController extends Controller
     $username = $request->get('username');
     $password = $request->get('password');
 
-    $user = User::where('username', $username)->first();
+    $user = User::where(DB::raw('BINARY `username`'), $username)
+                ->where('status', 1)
+                ->first();
+    
     if (!$user) {
-      return view('/login', ['error' => 'Invalid credentials!', 'username' => $username]);
+      return view('/login', ['error' => 'Invalid credentials or no user account.', 'username' => $username]);
     }
 
     if (!Hash::check($password, $user->password)) {
@@ -64,7 +67,7 @@ class AppController extends Controller
     if ($reportBy == 'Daily') {
       $last7Days = Carbon::today()->subDays(29);
       $sales = Sale::select(
-                      DB::raw('sum(total_quantity) as y'), 
+                      DB::raw('sum(total_amount) as y'), 
                       DB::raw("DATE_FORMAT(created_at,'%m %d, %Y') as label"),
                     )
                   ->where('type', 'sales')
@@ -82,7 +85,7 @@ class AppController extends Controller
       foreach ($weeks as $key => $week) {
         $weekCount = $key + 1;
         $salesWeek[] = Sale::select(
-                            DB::raw('sum(total_quantity) as y'),
+                            DB::raw('sum(total_amount) as y'),
                             DB::raw("CONCAT('Week ', $weekCount) as label")
                           )
                           ->where('type', 'sales')
@@ -92,7 +95,7 @@ class AppController extends Controller
       $sales = $salesWeek;
     } else if ($reportBy == 'Monthly') {
       $sales = Sale::select(
-                      DB::raw('sum(total_quantity) as y'), 
+                      DB::raw('sum(total_amount) as y'), 
                       DB::raw("DATE_FORMAT(created_at,'%m %Y') as label"),
                     )
                     ->where('type', 'sales')
@@ -116,7 +119,7 @@ class AppController extends Controller
         $startDate = $year."-".$month['from']."-01";
         $endDate = $year."-".$month['to']."-".$month['days'];
         $salesQuarter[] = Sale::select(
-                                DB::raw('sum(total_quantity) as y'),
+                                DB::raw('sum(total_amount) as y'),
                                 DB::raw("CONCAT('Quarter ', $quarter) as label")
                               )
                               ->where('type', 'sales')
@@ -127,7 +130,7 @@ class AppController extends Controller
       $sales = $salesQuarter;
     } else if ($reportBy == 'Yearly') {
       $sales = Sale::select(
-                      DB::raw('sum(total_quantity) as y'), 
+                      DB::raw('sum(total_amount) as y'), 
                       DB::raw("DATE_FORMAT(created_at, '%Y') as label"),
                     )
                     ->where('type', 'sales')

@@ -18,7 +18,7 @@
             <input type="text" class="form-control" placeholder="Search Reference or Items" name="search" value="{{$search}}" autocomplete="off">
           </div>
           <div class="col-auto">
-            <input type="submit" class="form-control btn-outline-success" value="Search"/>
+            <input type="submit" class="form-control btn-outline-success" value="Search" autocomplete="off"/>
           </div>
         </form>
       </div>
@@ -29,7 +29,7 @@
             <label for="inputPassword6" class="col-form-label">Sales Date</label>
           </div>
           <div class="col-auto">
-            <input type="date" placeholder="Select Date" class="form-control col-auto" id="date"/>
+            <input type="date" placeholder="Select Date" class="form-control col-auto" id="date" autocomplete="off"/>
           </div>
         </div>
       </div>

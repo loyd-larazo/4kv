@@ -4,12 +4,26 @@
   <nav class="navbar navbar-light bg-light">
     <h1>Users</h1>
 
-    <form class="row g-3 align-items-center" action="/users" method="GET">
-      <div class="col-auto">
-        <input type="text" class="form-control" placeholder="Search User" name="search" value="{{$search}}" autocomplete="off">
+    <form class="row g-3 align-items-center" action="/users" method="GET" id="searchForm">
+      <div class="col-auto row p-0 m-0 mt-3">
+        <label class="form-label col-auto pt-2">Status: </label>
+        <select id="selectStatus" name="status" class="form-control col">
+          <option {{!isset($status) || (isset($status) && $status == 1) ? 'selected' : ''}} value="1">Active</option>
+          <option {{(isset($status) && $status == 0) ? 'selected' : ''}} value="0">Disabled</option>
+        </select>
       </div>
       <div class="col-auto">
-        <input type="submit" class="form-control btn-outline-success" value="Search"/>
+        <div class="form-control clear-input">
+          <input type="text" class="form-control" placeholder="Search User" name="search" value="{{$search}}" autocomplete="off">
+          @if(isset($search) && $search != '')
+            <button class="btn btn-sm btn-light" id="clear-search">
+              <i class="fa fa-times-circle"></i>
+            </button>
+          @endif
+        </div>
+      </div>
+      <div class="col-auto">
+        <input type="submit" class="form-control btn-outline-success" value="Search" autocomplete="off"/>
       </div>
     </form>
 
@@ -38,7 +52,7 @@
         <th scope="col">Type</th>
         <th class="mobile-col-md" scope="col">Address</th>
         <th class="mobile-col-md" scope="col">Contact Number</th>
-        <th class="mobile-col-sm" scope="col">Status</th>
+        {{-- <th class="mobile-col-sm" scope="col">Status</th> --}}
         <th scope="col"></th>
       </tr>
     </thead>
@@ -59,7 +73,7 @@
             <td class="text-capitalize">{{ $user->type }}</td>
             <td class="mobile-col-md">{{ $user->address }}</td>
             <td class="mobile-col-md">{{ $user->contact_number }}</td>
-            <td class="mobile-col-sm">{{ $user->status == 1 ? 'Active' : 'Disabled' }}</td>
+            {{-- <td class="mobile-col-sm">{{ $user->status == 1 ? 'Active' : 'Disabled' }}</td> --}}
             <td>
               <button 
                 class="btn btn-sm btn-outline-warning edit-user" 
@@ -120,30 +134,30 @@
           </div>
           <div class="modal-body">
             <div class="mb-3" id="changePasswordParent">
-              <input type="checkbox" id="changePassword" name="change_password"/>
+              <input type="checkbox" id="changePassword" name="change_password" autocomplete="off"/>
               <label class="form-label" for="changePassword">Change Password</label>
             </div>
 
             <div id="updatePassword" class="d-none">
               <div class="mb-3">
                 <label class="form-label">New Password</label>
-                <input type="password" class="form-control required" name="new_password" autocomplete="nope">
+                <input type="password" class="form-control required" name="new_password" autocomplete="off">
               </div>
               <div class="mb-3">
                 <label class="form-label">Confirm Password</label>
-                <input type="password" class="form-control required" name="confirm_password" autocomplete="nope">
+                <input type="password" class="form-control required" name="confirm_password" autocomplete="off">
               </div>
             </div>
 
             <div id="updateInfo">
               <div class="mb-3">
                 <label class="form-label">Username</label>
-                <input type="text" class="form-control required" name="username" required autocomplete="nope">
+                <input type="text" class="form-control required" name="username" required autocomplete="off">
               </div>
 
               <div class="mb-3" id="addPassword">
                 <label class="form-label">Password</label>
-                <input type="password" class="form-control required" name="password" autocomplete="nope">
+                <input type="password" class="form-control required" name="password" autocomplete="off">
               </div>
               
               <div class="mb-3">
@@ -158,12 +172,12 @@
   
               <div class="mb-3">
                 <label class="form-label">First Name</label>
-                <input type="text" class="form-control required" name="firstname" required autocomplete="nope">
+                <input type="text" class="form-control required" name="firstname" required autocomplete="off">
               </div>
   
               <div class="mb-3">
                 <label class="form-label">Last Name</label>
-                <input type="text" class="form-control required" name="lastname" required autocomplete="nope">
+                <input type="text" class="form-control required" name="lastname" required autocomplete="off">
               </div>
   
               <div class="mb-3">
@@ -177,22 +191,22 @@
   
               <div class="mb-3">
                 <label class="form-label">Birthdate</label>
-                <input type="date" class="form-control required" name="birthdate" required autocomplete="nope">
+                <input type="date" class="form-control required" name="birthdate" required autocomplete="off">
               </div>
   
               <div class="mb-3">
                 <label class="form-label">Contact Number</label>
-                <input type="text" class="form-control required" name="contact_number" required autocomplete="nope">
+                <input type="text" class="form-control required" name="contact_number" required autocomplete="off">
               </div>
   
               <div class="mb-3">
                 <label class="form-label">Address</label>
-                <textarea class="form-control required" name="address" required autocomplete="nope"></textarea>
+                <textarea class="form-control required" name="address" required autocomplete="off"></textarea>
               </div>
   
               <div class="mb-3">
                 <label class="form-label">Salary</label>
-                <input type="number" class="form-control required" name="salary" required autocomplete="nope">
+                <input type="number" class="form-control required" name="salary" required autocomplete="off">
               </div>
   
               <div class="mb-3">
@@ -237,6 +251,19 @@
 
   <script>
     $(function() {
+      $("#selectStatus").change(function() {
+        $("#searchForm").submit();
+      });
+
+      $("#clear-search").click(function() {
+        $('input[name="search"]').val("");
+        $("#searchForm").submit();
+      });
+
+      const today = new Date();
+      const minYear = (today.getFullYear()).toString() - 100;
+      $('input[name="birthdate"]').attr("min", minYear+"-01-01");
+
       $("#changePassword").change(function() {
         resetForm();
       });

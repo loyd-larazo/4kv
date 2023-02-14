@@ -182,8 +182,8 @@
               text: `${reportBy} Sales`
             },
             axisY: {
-              title: "Item Sold",
-              suffix: " items"
+              title: "Sales Amount",
+              suffix: " amount"
             },
             axisX: {
               title: xAxisLabel[reportBy]

@@ -23,7 +23,7 @@
     <div class="">
       <div class="mb-3">
         <label class="form-label">Stock Man</label>
-        <input type="text" class="form-control" placeholder="Stock Man" id="stockman" value="{{$user->firstname." ".$user->lastname}}" @disabled(true)/>
+        <input type="text" class="form-control" placeholder="Stock Man" id="stockman" value="{{$user->firstname." ".$user->lastname}}" @disabled(true) autocomplete="off"/>
       </div>
 
       <div class="mb-3">
@@ -63,7 +63,7 @@
           </div>
   
           <div class="row m-0 p-0 search-items-container">
-            <table class="table">
+            <table class="table table-header-fixed">
               <thead class="thead-light">
                 <tr>
                   <th>Product</th>
@@ -310,8 +310,8 @@
               <td>${aItem.sku}</td>
               <td>${aItem.name}</td>
               <td>${selectedSupp.name}</td>
-              <td><input class="form-control added-item-qty" type="number" value="${aItem.quantity}" data-id="${aItem.id}" step="${(aItem.sold_by_weight || aItem.sold_by_length) ? '0.1' : '1'}"></td>
-              <td><input class="form-control added-item-cost" type="number" placeholder="Cost" value="${aItem.cost}" data-id="${aItem.id}"></td>
+              <td><input class="form-control added-item-qty" type="number" value="${aItem.quantity}" data-id="${aItem.id}" step="${(aItem.sold_by_weight || aItem.sold_by_length) ? '0.1' : '1'}" autocomplete="off"></td>
+              <td><input class="form-control added-item-cost" type="number" placeholder="Cost" value="${aItem.cost}" data-id="${aItem.id}" autocomplete="off"></td>
               <td>${formatMoney(totalCost, 2, '.', ',')}</td>
               <td>
                 <button data-id="${aItem.id}" class="btn btn-sm btn-danger delete-item">

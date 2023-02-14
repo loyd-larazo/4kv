@@ -94,7 +94,7 @@
         <div class="row">
           <h2 class="col-auto">Paid Amount:</h2>
           <div class="col-auto">
-            <input type="number" id="amount" class="form-control h2"/>
+            <input type="number" id="amount" class="form-control h2" autocomplete="off"/>
           </div>
         </div>
       </div>
@@ -123,7 +123,7 @@
             </div>
             <div class="mb-3">
               <label for="closingAmount" class="form-label">Closing Amount </label>
-              <input type="number" class="form-control" id="closingAmount" name="closingAmount">
+              <input type="number" class="form-control" id="closingAmount" name="closingAmount" autocomplete="off">
             </div>
           </div>
           <div class="modal-footer">
@@ -320,7 +320,7 @@
                 Sold by: ${item.sold_by_weight ? 'Weight' : (item.sold_by_length ? 'Length' : 'Stock')}
               </td>
               <td class="align-middle">
-                <input type="number" class="form-control form-control-sm car-qty" value="${item.quantity}" data-id="${item.id}" max="${item.stock}" step="${(item.sold_by_weight || item.sold_by_length) ? '0.1' : '1'}"/> 
+                <input type="number" class="form-control form-control-sm car-qty" value="${item.quantity}" data-id="${item.id}" max="${item.stock}" step="${(item.sold_by_weight || item.sold_by_length) ? '0.1' : '1'}" autocomplete="off"/> 
               </td>
               <td class="align-middle">P${formatMoney(item.price, 2, '.', ',')}</td>
               <td class="fw-bold align-middle">P${formatMoney(itemTotal, 2, '.', ',')}</td>
@@ -342,7 +342,7 @@
           $('#submitCheckout').attr('disabled', 'disabled');
         }
 
-        $('.car-qty').on('keyup change', function() {
+        $('.car-qty').change(function() {
           var itemId = $(this).data('id');
           var cartItemIndex = cart.findIndex(c => c.id == itemId);
 

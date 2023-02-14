@@ -13,10 +13,17 @@
         </select>
       </div>
       <div class="col-auto">
-        <input type="text" class="form-control" placeholder="Search Supplier" name="search" value="{{$search}}" autocomplete="off">
+        <div class="form-control clear-input">
+          <input type="text" class="form-control" placeholder="Search Supplier" name="search" value="{{$search}}" autocomplete="off">
+          @if(isset($search) && $search != '')
+            <button class="btn btn-sm btn-light" id="clear-search">
+              <i class="fa fa-times-circle"></i>
+            </button>
+          @endif
+        </div>
       </div>
       <div class="col-auto">
-        <input type="submit" class="form-control btn-outline-success" value="Search"/>
+        <input type="submit" class="form-control btn-outline-success" value="Search" autocomplete="off"/>
       </div>
     </form>
 
@@ -44,7 +51,7 @@
         <th scope="col">Contact Person</th>
         <th class="mobile-col-sm" scope="col">Contact Number</th>
         <th class="mobile-col-md" scope="col">Address</th>
-        <th scope="col">Status</th>
+        {{-- <th scope="col">Status</th> --}}
         <th scope="col"></th>
       </tr>
     </thead>
@@ -56,7 +63,7 @@
             <td class="text-capitalize">{{ $supplier->contact_person }}</td>
             <td class="mobile-col-sm">{{ $supplier->contact_number }}</td>
             <td class="mobile-col-md">{{ $supplier->address }}</td>
-            <td>{{ $supplier->status == 1 ? 'Active' : 'Disabled' }}</td>
+            {{-- <td>{{ $supplier->status == 1 ? 'Active' : 'Disabled' }}</td> --}}
             <td>
               <button 
                 class="btn btn-sm btn-outline-warning edit-supplier" 
@@ -110,17 +117,17 @@
           <div class="modal-body">
             <div class="mb-3">
               <label class="form-label">Name</label>
-              <input type="text" class="form-control" name="name" required autocomplete="nope">
+              <input type="text" class="form-control" name="name" required autocomplete="off">
             </div>
 
             <div class="mb-3">
               <label class="form-label">Contact Person</label>
-              <input type="text" class="form-control" name="contact_person" required autocomplete="nope">
+              <input type="text" class="form-control" name="contact_person" required autocomplete="off">
             </div>
 
             <div class="mb-3">
               <label class="form-label">Contact Number</label>
-              <input type="number" class="form-control" name="contact_number" required autocomplete="nope">
+              <input type="number" class="form-control" name="contact_number" required autocomplete="off">
             </div>
 
             <div class="mb-3">
@@ -150,6 +157,11 @@
       $("#selectStatus").change(function() {
         $("#searchForm").submit();
       });
+
+    $("#clear-search").click(function() {
+      $('input[name="search"]').val("");
+      $("#searchForm").submit();
+    });
 
       $('#addSupplier').click(function() {
         $('#type').html("Add");

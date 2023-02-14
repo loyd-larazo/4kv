@@ -16,7 +16,7 @@
       </div>
       <div class="mb-3">
         <label for="amount" class="form-label">Opening Amount</label>
-        <input type="number" class="form-control" name="amount" id="amount">
+        <input type="number" class="form-control" name="amount" id="amount" autocomplete="off">
       </div>
 
       <div class="text-center">

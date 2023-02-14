@@ -15,6 +15,10 @@
       <script src="/js/jquery.canvasjs.min.js"></script>
       <script src="/jquery-ui/jquery-ui.min.js"></script>
       <script src="/bootstrap/js/bootstrap.bundle.min.js"></script>
+      <script>
+        const isLoggedin = sessionStorage.getItem('login');
+        if (!isLoggedin) location.href = "/logout";
+      </script>
   </head>
   <body>
 
@@ -57,7 +61,7 @@
                   </li>
                   <li>
                     <a href="/return-items" class="dropdown-item {{ in_array(request()->route()->getName(), ['returnItems']) ? 'text-primary' : '' }}">
-                      <i class="fa-solid fa-right-left me-3"></i><span>Return Items</span>
+                      <i class="fa-solid fa-right-left me-3"></i><span>Refund Items</span>
                     </a>
                   </li>
                 </ul>

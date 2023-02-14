@@ -81,7 +81,7 @@
             $strDate = strtotime($sale->created_at);
             $transDate = getDate($strDate);
           ?>
-          Date: {{ $transDate['month']." ".$transDate['mday'].", ".$transDate['year'] }}
+          Date: {{ $transDate['month']." ".$transDate['mday'].", ".$transDate['year']." ".$transDate['hours'].":".$transDate['minutes'] }}
         </p>
         <table>
           <tbody>

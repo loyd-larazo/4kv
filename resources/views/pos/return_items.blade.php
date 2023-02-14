@@ -2,10 +2,10 @@
 
 @section('content')
 <nav class="navbar navbar-light bg-light">
-  <h1>Returned Items</h1>
+  <h1>Refunded Items</h1>
   @if(isset($dailySale) && ($dailySale && !$dailySale->closing_user_id))
     <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#returnItems">
-      <i class="fa-solid fa-right-left me-2"></i> Return Item
+      <i class="fa-solid fa-right-left me-2"></i> Refund Item
     </button>
   @else
     <label>Cashier is already closed!</label>
@@ -62,7 +62,7 @@
       @endforeach
     @else
       <tr>
-        <th colspan="7" class="text-center">No return found.</th>
+        <th colspan="7" class="text-center">No refund found.</th>
       </tr>
     @endif
   </tbody>
@@ -92,7 +92,7 @@
   <div class="modal-dialog modal-xl">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title" id="returnItemsLabel">Return Items</h5>
+        <h5 class="modal-title" id="returnItemsLabel">Refund Items</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div>
@@ -110,7 +110,7 @@
                 <th>Quantity</th>
                 <th>Amount</th>
                 <th>Total Amount</th>
-                <th>Return Quantity</th>
+                <th>Refund Quantity</th>
               </tr>
             </thead>
             <tbody id="salesItems">
@@ -118,7 +118,7 @@
           </table>
         </div>
         <div class="modal-footer">
-          <button class="btn btn-danger" id="sendReturnItem" disabled>Return</button>
+          <button class="btn btn-danger" id="sendReturnItem" disabled>Refund</button>
         </div>
       </div>
     </div>
@@ -129,7 +129,7 @@
   <div class="modal-dialog modal-lg">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title" id="salesModalLabel">Returned Items</h5>
+        <h5 class="modal-title" id="salesModalLabel">Refunded Items</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body">
@@ -194,7 +194,7 @@
               <td>${item.amount}</td>
               <td>${item.total_amount}</td>
               <td>
-                <input id="item-${item.id}" class="form-control qty" type="number" min="0" max="${item.quantity}" value="0"/>  
+                <input id="item-${item.id}" class="form-control qty" type="number" min="0" max="${item.quantity}" value="0" autocomplete="off"/>  
               </td>
             </tr>
           `;
