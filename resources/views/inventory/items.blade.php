@@ -273,6 +273,7 @@
         var price = $('input[name="price"]').val();
         if (cost > price) {
           $('#modalError').html("The cost shouldn't higher than the price.").removeClass('d-none');
+          document.getElementById("itemsModal").scrollTop = 0;
         } else {
           var sku = $('input[name="sku"]').val();
           var name = $('input[name="name"]').val();
@@ -286,6 +287,7 @@
             success: (data) => {
               if (data.data) {
                 $('#modalError').html("Item with the same name and category is already exists.").removeClass('d-none');
+                document.getElementById("itemsModal").scrollTop = 0;
               } else {
                 $(this).unbind('submit').submit();
               }

@@ -143,3 +143,7 @@
 .table-header-fixed thead th {
   border: none;
 }
+
+.modal form textarea {
+  width: -webkit-fill-available;
+}

@@ -76,13 +76,15 @@
                   <i class="fa-solid fa-pen-to-square"></i>
                 </button>
 
-                <button 
-                  class="btn btn-sm btn-outline-danger delete-category" 
-                  data-bs-toggle="modal" 
-                  data-bs-target="#deletecategoryModal" 
-                  data-id="{{ $category->id }}" >
-                  <i class="fa-solid fa-trash-can"></i>
-                </button>
+                @if(in_array($user->type, ["admin"]))
+                  <button 
+                    class="btn btn-sm btn-outline-danger delete-category" 
+                    data-bs-toggle="modal" 
+                    data-bs-target="#deletecategoryModal" 
+                    data-id="{{ $category->id }}" >
+                    <i class="fa-solid fa-trash-can"></i>
+                  </button>
+                @endif
               </td>
             @endif
           </tr>
