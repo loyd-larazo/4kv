@@ -16,6 +16,7 @@
       {{ \Session::get('success') }}
     </div>
   @endif
+  <div class="alert alert-success text-center" id="item-success" role="alert">Item has been saved!</div>
 
   <div class="">
     <input type="hidden" name="_token" value="{{ csrf_token() }}" />
@@ -229,6 +230,7 @@
 
   <script>
     $(function() {
+      $('#item-success').hide();
       var productItems = JSON.parse(@json($items));
       var suppliers = JSON.parse(@json($suppliers));
       var addedItems = [];
@@ -326,14 +328,14 @@
               return alert("Please select supplier.");
             }
 
-            var itemIndex = addedItems.findIndex(ai => (ai.id == item.id && ai.supplier == searchItem.supplier_id));
+            var itemIndex = addedItems.findIndex(ai => (ai.id == item.id && ai.supplier_id == searchItem.supplier_id));
             if (itemIndex >= 0) {
               var addedItem = addedItems[itemIndex];
               addedItem.quantity = parseFloat(addedItem.quantity) + 1;
               addedItems[itemIndex] = addedItem;
             } else {
               searchItem.quantity = 1;
-              addedItems.push(searchItem);
+              addedItems.push(JSON.parse(JSON.stringify(searchItem)));
             }
 
             populateItems();
@@ -516,11 +518,12 @@
             isAjax: true,
           },
           success: (data) => {
-            console.log(data.data);
             productItems = data.data;
             itemSearch = productItems.map(item => {return {...item, label: item.name}});
             initializeAutocomplete();
             $('#itemsModal').modal('hide');
+            $('#item-success').show();
+            setTimeout(() => { $('#item-success').hide(); } , 2000);
           }
         });
       }
