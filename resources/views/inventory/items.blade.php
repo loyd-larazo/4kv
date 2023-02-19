@@ -89,9 +89,13 @@
                   <i class="fa-solid fa-pen-to-square"></i>
                 </button>
               @endif
-              <a href="/item/{{ $item->sku }}/barcode" target="_blank" class="btn btn-sm btn-outline-primary barcode-item">
+              <button 
+                class="btn btn-sm btn-outline-primary barcode-item" 
+                data-bs-toggle="modal" 
+                data-bs-target="#barcodeModal" 
+                data-sku="{{ $item->sku }}">
                 <i class="fa-solid fa-barcode"></i>
-              </a>
+              </button>
             </td>
           </tr>
         @endforeach
@@ -206,6 +210,31 @@
     </div>
   </div>
 
+  <div class="modal fade" id="barcodeModal" tabindex="-1" aria-labelledby="barcodeModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div>
+          <input type="hidden" name="barcodeSku"/>
+          <div class="modal-header">
+            <h5 class="modal-title" id="barcodeModalLabel">Barcode Item</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <div id="modalBarcodeError" class="alert alert-danger text-center d-none" role="alert"></div>
+            
+            <div class="mb-3">
+              <label class="form-label">Number of Barcode</label>
+              <input type="number" class="form-control" name="noBarcode" min="1" required autocomplete="off">
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button id="generateBarcodeBtn" type="button" class="btn btn-outline-success">Print</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <script>
     $(function() {
       $("#selectStatus").change(function() {
@@ -294,7 +323,21 @@
             }
           });
         }
-      })
+      });
+
+      $('.barcode-item').click(function() {
+        $('#modalBarcodeError').html("").addClass('d-none');
+        var barcodeSku = $(this).data('sku');
+        $('input[name="barcodeSku"]').val(barcodeSku);
+        $('input[name="noBarcode"]').val("1");
+      });
+
+      $('#generateBarcodeBtn').click(function() {
+        var sku = $('input[name="barcodeSku"]').val();
+        var noBarcode = $('input[name="noBarcode"]').val();
+        $('#barcodeModal').modal('hide');
+        window.open(`/item/${sku}/barcode?noPrint=${noBarcode}`);
+      });
     });
   </script>
 @endsection

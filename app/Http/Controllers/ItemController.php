@@ -105,8 +105,9 @@ class ItemController extends Controller
 	}
 
   public function generateBarcode(Request $request, $sku) {
+		$noPrint = $request->get('noPrint');
     // echo DNS1D::getBarcodeSVG($sku, 'C39', 1, 70);
-    return view('inventory.barcode', ['sku' => $sku]);
+    return view('inventory.barcode', ['sku' => $sku, 'noPrint' => $noPrint]);
   }
 
   public function categories(Request $request) {
