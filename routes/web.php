@@ -42,6 +42,7 @@ Route::middleware([ValidateUser::class])->group(function () {
   Route::get('/validate/item/category/{categoryId}', [ItemController::class, 'validateProductName']);
   Route::get('/return-items', [ItemController::class, 'returnItems'])->name('returnItems');
   Route::post('/return-items/{salesId}', [ItemController::class, 'saveReturnItems'])->name('saveReturnItems');
+  Route::get('/return-items/damage-type', [ItemController::class, 'damageItems'])->name('damageItems');
 
   Route::get('/suppliers', [ItemController::class, 'suppliers'])->name('suppliers');
   Route::post('/supplier', [ItemController::class, 'updateOrCreateSupplier']);

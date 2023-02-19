@@ -10,6 +10,7 @@ use App\Models\Item;
 use App\Models\Supplier;
 use App\Models\Sale;
 use App\Models\SaleItem;
+use App\Models\DamageItem;
 use App\Models\DailySale;
 use Carbon\Carbon;
 
@@ -239,18 +240,27 @@ class ItemController extends Controller
       return $page;
     });
 
-		$returns = Sale::when($search, function($query) use ($search) {
-										$query->where('reference', $search);
-									})
-									->orWhereHas('items', function($query) use ($search) {
-										$query->whereHas('item', function($query) use ($search) {
-											if ($search) {
-												$query->where('name', 'like', "%$search%");
-											}
-										});
+		$returns = Sale::when(isset($search), function($query) use ($search) {
+										$query->where(function($query) use ($search) {
+											$query->where('reference', $search)
+														->orWhereHas('items', function($query) use ($search) {
+															$query->whereHas('item', function($query) use ($search) {
+																if ($search) {
+																	$query->where('name', 'like', "%$search%");
+																}
+															});
+														})
+														->orWhereHas('damageItems', function($query) use ($search) {
+															$query->whereHas('item', function($query) use ($search) {
+																if ($search) {
+																	$query->where('name', 'like', "%$search%");
+																}
+															});
+														});
+											});
 									})
 									->where('type', 'return')
-									->with('items.item', 'user')
+									->with('items.item', 'user', 'damageItems.item')
 									->orderBy('created_at', 'desc')
 									->paginate(20);
 
@@ -270,6 +280,7 @@ class ItemController extends Controller
 		$totalQty = $request->get('totalQty');
 		$totalAmount = $request->get('totalAmount');
 		$user = $request->get('user');
+		$returnType = $request->get('returnType');
 
 		$today = Carbon::today();
     $dailySale = DailySale::whereDate('created_at', $today)->first();
@@ -287,16 +298,40 @@ class ItemController extends Controller
 		]);
 
 		foreach ($items as $item) {
-			SaleItem::create([
-				'sale_id' => $returnSale->id,
-				'item_id' => $item->item_id,
-				'quantity' => $item->quantity,
-				'amount' => $item->amount,
-				'total_amount' => $item->total_amount,
-				'type' => 'return'
-			]);
+			if ($item->returnType == 'damage') {
+				DamageItem::create([
+					'sale_id' => $returnSale->id,
+					'item_id' => $item->item_id,
+					'quantity' => $item->quantity,
+					'amount' => $item->amount,
+					'total_amount' => $item->total_amount
+				]);
+			} else {
+				SaleItem::create([
+					'sale_id' => $returnSale->id,
+					'item_id' => $item->item_id,
+					'quantity' => $item->quantity,
+					'amount' => $item->amount,
+					'total_amount' => $item->total_amount,
+					'type' => 'return'
+				]);
+			}
 		}
 
 		return redirect()->back()->with('success', 'Items has been returned!'); 
+	}
+
+	public function damageItems(Request $request) {
+		$page = $request->get('page') ?? 1;
+
+		Paginator::currentPageResolver(function() use ($page) {
+      return $page;
+    });
+
+		$damages = DamageItem::with('item')->orderBy('created_at', 'desc')->paginate(20);
+
+		return view('damage_items', [
+			'damages' => $damages
+		]);
 	}
 }

@@ -2,11 +2,16 @@
 
 @section('content')
 <nav class="navbar navbar-light bg-light">
-  <h1>Refunded Items</h1>
+  <h1>Returned Items</h1>
   @if(isset($dailySale) && ($dailySale && !$dailySale->closing_user_id))
-    <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#returnItems">
-      <i class="fa-solid fa-right-left me-2"></i> Refund Item
-    </button>
+    <div class="">
+      <a href="/return-items/damage-type" class="btn btn-sm btn-success">
+        <i class="fa-regular fa-rectangle-list me-2"></i> Damage Items
+      </a>
+      <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#returnItems">
+        <i class="fa-solid fa-right-left me-2"></i> Return Item
+      </button>
+    </div>
   @else
     <label>Cashier is already closed!</label>
   @endif
@@ -54,7 +59,8 @@
               data-bs-toggle="modal" 
               data-bs-target="#salesModal" 
               data-id="{{ $return->id }}" 
-              data-json="{{ json_encode($return->items) }}">
+              data-json="{{ json_encode($return->items) }}"
+              data-damage="{{ json_encode($return->damageItems) }}">
               <i class="fa-regular fa-rectangle-list"></i>
             </button>
           </td>
@@ -62,7 +68,7 @@
       @endforeach
     @else
       <tr>
-        <th colspan="7" class="text-center">No refund found.</th>
+        <th colspan="7" class="text-center">No return found.</th>
       </tr>
     @endif
   </tbody>
@@ -92,7 +98,7 @@
   <div class="modal-dialog modal-xl">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title" id="returnItemsLabel">Refund Items</h5>
+        <h5 class="modal-title" id="returnItemsLabel">Return Items</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div>
@@ -110,7 +116,8 @@
                 <th>Quantity</th>
                 <th>Amount</th>
                 <th>Total Amount</th>
-                <th>Refund Quantity</th>
+                <th>Type</th>
+                <th>Return Quantity</th>
               </tr>
             </thead>
             <tbody id="salesItems">
@@ -118,7 +125,7 @@
           </table>
         </div>
         <div class="modal-footer">
-          <button class="btn btn-danger" id="sendReturnItem" disabled>Refund</button>
+          <button class="btn btn-danger" id="sendReturnItem" disabled>Return</button>
         </div>
       </div>
     </div>
@@ -129,7 +136,7 @@
   <div class="modal-dialog modal-lg">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title" id="salesModalLabel">Refunded Items</h5>
+        <h5 class="modal-title" id="salesModalLabel">Returned Items</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body">
@@ -140,6 +147,7 @@
               <th>Price</th>
               <th>Quantity</th>
               <th>Total Price</th>
+              <th>Type</th>
             </tr>
           </thead>
           <tbody id="saleItems">
@@ -194,6 +202,12 @@
               <td>${item.amount}</td>
               <td>${item.total_amount}</td>
               <td>
+                <select class="form-select" data-id="${item.id}" name="returnType" required>
+                  <option value="wrong">Wrong Item</option>
+                  <option value="damage">Damage Item</option>
+                </select>
+              </td>
+              <td>
                 <input id="item-${item.id}" class="form-control qty" type="number" min="0" max="${item.quantity}" value="0" autocomplete="off"/>  
               </td>
             </tr>
@@ -208,6 +222,13 @@
           }
           getItemsQty();
         });
+
+        $('select[name="returnType"]').change(function() {
+          var returnType = $(this).val();
+          var id = $(this).data('id');
+          var selectedSaleItemId = selectedSales.items.findIndex(item => item.id == id);
+          if (selectedSaleItemId >= 0) selectedSales.items[selectedSaleItemId]['returnType'] = returnType;
+        });
       }
     }
 
@@ -216,8 +237,10 @@
       items.map(item => {
         var iwqId = itemsWithQty.findIndex(iwq => iwq.id == item.id);
         var qty = parseFloat($(`#item-${item.id}`).val());
+        var returnType = item.returnType ? item.returnType : 'wrong';
         if (qty > 0) { 
           if (iwqId >= 0) {
+            itemsWithQty[iwqId]['returnType'] = returnType;
             itemsWithQty[iwqId].quantity = qty;
             itemsWithQty[iwqId].total_amount = parseFloat(qty) * parseFloat(item.amount);
           } else {
@@ -226,7 +249,8 @@
               quantity: qty,
               item_id: item.item_id,
               amount: item.amount,
-              total_amount: parseFloat(qty) * parseFloat(item.amount)
+              total_amount: parseFloat(qty) * parseFloat(item.amount),
+              returnType
             });
           }
         } else {
@@ -284,17 +308,36 @@
     $('.view-sales').click(function() {
       $("#saleItems").html("");
       var items = $(this).data('json');
+      var damageItems = $(this).data('damage');
       var html = '';
+
       items.map(item => {
-        html += `
-            <tr>
-              <td>${item.item.name}</td>
-              <td>P${formatMoney(item.amount, 2, '.', ',')}</td>
-              <td>${item.quantity}</td>
-              <td>P${formatMoney(item.total_amount, 2, '.', ',')}</td>
-            </tr>
-          `;
+        if (item.type == 'return') {
+          html += `
+              <tr>
+                <td>${item.item.name}</td>
+                <td>P${formatMoney(item.amount, 2, '.', ',')}</td>
+                <td>${item.quantity}</td>
+                <td>P${formatMoney(item.total_amount, 2, '.', ',')}</td>
+                <td>Wrong Item</td>
+              </tr>
+            `;
+        }
       });
+
+      if (damageItems.length > 0) {
+        damageItems.map(item => {
+          html += `
+              <tr>
+                <td>${item.item.name}</td>
+                <td>P${formatMoney(item.amount, 2, '.', ',')}</td>
+                <td>${item.quantity}</td>
+                <td>P${formatMoney(item.total_amount, 2, '.', ',')}</td>
+                <td>Damage Item</td>
+              </tr>
+            `;
+        });
+      }
       $("#saleItems").html(html);
     });
 

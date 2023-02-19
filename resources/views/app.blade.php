@@ -61,7 +61,7 @@
                   </li>
                   <li>
                     <a href="/return-items" class="dropdown-item {{ in_array(request()->route()->getName(), ['returnItems']) ? 'text-primary' : '' }}">
-                      <i class="fa-solid fa-right-left me-3"></i><span>Refund Items</span>
+                      <i class="fa-solid fa-right-left me-3"></i><span>Return Items</span>
                     </a>
                   </li>
                 </ul>
@@ -91,6 +91,11 @@
                   <li>
                     <a href="/suppliers" class="dropdown-item {{ in_array(request()->route()->getName(), ['suppliers'])  ? 'text-primary' : '' }}">
                       <i class="fa-solid fa-truck-field me-3"></i><span>Suppliers</span>
+                    </a>
+                  </li>
+                  <li>
+                    <a href="/return-items/damage-type" class="dropdown-item {{ in_array(request()->route()->getName(), ['damages'])  ? 'text-primary' : '' }}">
+                      <i class="fa-solid fa-ban me-3"></i><span>Damage Items</span>
                     </a>
                   </li>
                 @endif
