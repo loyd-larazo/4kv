@@ -55,9 +55,9 @@ class AppController extends Controller
   public function index(Request $request) {
     $page = $request->get('page') ?? 1;
     $reportBy = $request->get('reportBy') ?? 'Daily';
+    $topSellingFilter = $request->get('topSelling') ?? 'Daily';
     // $limit = (int)$request->session()->get('warning_limit');
     $limit = 15;
-    $topSelling = 100;
 
     Paginator::currentPageResolver(function() use ($page) {
       return $page;
@@ -141,23 +141,14 @@ class AppController extends Controller
     }
 
     $lowStockItems = Item::where('stock', '<=', $limit)->paginate(20);
-
-    $topSellingItems = SaleItem::select(
-                                'item_id',
-                                DB::raw('sum(quantity) as sold'), 
-                              )
-                              ->with('item')
-                              ->havingRaw("sold >= $topSelling")
-                              ->groupBy('item_id')
-                              ->orderBy('sold', 'DESC')
-                              ->limit(10)
-                              ->get();
+    $topSellingItems = $this->pullTopSellingItems($topSellingFilter);
 
     return view('home', [
       'reportBy' => $reportBy,
       'sales' => json_encode($sales),
       'lowStocks' => $lowStockItems,
-      'topSelling' => $topSellingItems
+      'topSelling' => $topSellingItems,
+      'topSellingFilter' => $topSellingFilter
     ]);
   }
 
@@ -222,4 +213,75 @@ class AppController extends Controller
   
   }
   
+  private function pullTopSellingItems($topSellingFilter) {
+    $topSelling = 100;
+
+    switch($topSellingFilter) {
+      case('Daily'):
+        $today = Carbon::today()->toDateString();
+        $topItems = SaleItem::select( 'item_id',
+                              DB::raw('sum(quantity) as sold') )
+                            ->with('item')
+                            ->whereDate('created_at', '=', $today)
+                            ->havingRaw("sold >= $topSelling")
+                            ->groupBy('item_id')
+                            ->orderBy('sold', 'DESC')
+                            ->limit(10)
+                            ->get();
+        break;
+      case('Weekly'):
+        $startOfWeek = Carbon::now()->startOfWeek();
+        $endOfWeek = Carbon::now()->endOfWeek();
+        $topItems = SaleItem::select( 'item_id',
+                              DB::raw('sum(quantity) as sold') )
+                            ->with('item')
+                            ->whereBetween('created_at', [$startOfWeek, $endOfWeek])
+                            ->havingRaw("sold >= $topSelling")
+                            ->groupBy('item_id')
+                            ->orderBy('sold', 'DESC')
+                            ->limit(10)
+                            ->get();
+        break;
+      case('Monthly'):
+        $month = Carbon::now()->month;
+        $topItems = SaleItem::select( 'item_id',
+                              DB::raw('sum(quantity) as sold') )
+                            ->with('item')
+                            ->whereMonth('created_at', '=', $month)
+                            ->havingRaw("sold >= $topSelling")
+                            ->groupBy('item_id')
+                            ->orderBy('sold', 'DESC')
+                            ->limit(10)
+                            ->get();
+        break;
+      case('Quarterly'):
+        $start_of_quarter = Carbon::now()->startOfQuarter();
+        $end_of_today = Carbon::now()->endOfDay();
+        $topItems = SaleItem::select( 'item_id',
+                              DB::raw('sum(quantity) as sold') )
+                            ->with('item')
+                            ->whereBetween('created_at', [$start_of_quarter, $end_of_today])
+                            ->havingRaw("sold >= $topSelling")
+                            ->groupBy('item_id')
+                            ->orderBy('sold', 'DESC')
+                            ->limit(10)
+                            ->get();
+        break;
+      case('Yearly'):
+        $year = Carbon::now()->year;
+        $topItems = SaleItem::select( 'item_id',
+                              DB::raw('sum(quantity) as sold') )
+                            ->with('item')
+                            ->whereYear('created_at', '=', $year)
+                            ->havingRaw("sold >= $topSelling")
+                            ->groupBy('item_id')
+                            ->orderBy('sold', 'DESC')
+                            ->limit(10)
+                            ->get();
+        break;
+      default:
+        $topItems = [];
+    }
+    return $topItems;
+  }
 }

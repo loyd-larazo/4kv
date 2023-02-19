@@ -75,22 +75,20 @@
           Provincial Road, Cataggaman Nuevo, Tuguegarao City<br>
           No. 09452468528
         </p>
-        <hr>
         <p>
-          <?php
-            $strDate = strtotime($sale->created_at);
-            $transDate = getDate($strDate);
-          ?>
-          Date: {{ $transDate['month']." ".$transDate['mday'].", ".$transDate['year']." ".$transDate['hours'].":".$transDate['minutes'] }}
+          Cashier: {{ $sale->user->firstname }} <br>
+          Date: {{ $createdDate }}
         </p>
         <table>
           <tbody>
             @foreach($sale->items as $item)
               <tr>
-                <td class="name">{{ $item->item->name }}</td>
-                <td class="price">
-                  {{ $item->quantity }} x P{{ number_format($item->amount) }}<br>
-                  P{{ number_format($item->total_amount) }}
+                <td class="name">
+                  {{ $item->item->name }}<br>
+                  {{ $item->quantity }} x P{{ number_format($item->amount, 2, '.', ',') }}
+                </td>
+                <td class="price" style="vertical-align: top">
+                  P{{ number_format($item->total_amount, 2, '.', ',') }}
                 </td>
               </tr>
             @endforeach
@@ -99,16 +97,20 @@
               <td class="price">P{{ $vat }}</td>
             </tr>
             <tr class="no-border">
+              <td class="name">DISCOUNT</td>
+              <td class="price">P{{ number_format($sale->total_discount, 2, '.', ',') }}</td>
+            </tr>
+            <tr class="no-border">
               <td class="name">TOTAL</td>
-              <td class="price">P{{ number_format($sale->total_amount) }}</td>
+              <td class="price">P{{ number_format($sale->total_amount, 2, '.', ',') }}</td>
             </tr>
             <tr class="no-border">
               <td class="name">PAID AMOUNT</td>
-              <td class="price">P{{ number_format($sale->paid_amount) }}</td>
+              <td class="price">P{{ number_format($sale->paid_amount, 2, '.', ',') }}</td>
             </tr>
             <tr class="no-border">
               <td class="name">CHANGE</td>
-              <td class="price">P{{ number_format($sale->change_amount) }}</td>
+              <td class="price">P{{ number_format($sale->change_amount, 2, '.', ',') }}</td>
             </tr>
           </tbody>
         </table>

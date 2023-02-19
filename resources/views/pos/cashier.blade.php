@@ -18,6 +18,8 @@
     </div>
   @endif
 
+  <div id="customError" class="alert alert-danger text-center" role="alert"></div>
+
   <div class="row">
     <div class="mt-2 p-0 col-sm-12 col-lg-5">
       <div class="card bg-light">
@@ -89,6 +91,16 @@
 
     <div class="row m-0 p-0">
       <h2>Total Quantity: <span class="total-quantity"></span></h2>
+      <h2>Subtotal Price: <span id="subtotal"></span></h2>
+      <div>
+        <div class="row">
+          <h2 class="col-auto">Discount (%):</h2>
+          <div class="col-auto">
+            <input type="number" min="0" max="100" id="discount" class="form-control h2" autocomplete="off"/>
+          </div>
+        </div>
+      </div>
+      <h2>Total Discount: <span id="totalDiscount"></span></h2>
       <h2>Total Price: <span class="total-price"></span></h2>
       <div>
         <div class="row">
@@ -142,9 +154,13 @@
       var searchItems = [];
       var totalPrice = 0;
       var totalQuantity = 0;
+      var subtotal = 0;
+      var totalDiscount = 0;
+      var decimalVal = 0;
 
       $('#sku').focus();
       $('#quantity').val(1);
+      $('#customError').hide();
 
       if (saleId) {
         setTimeout(() => {
@@ -200,6 +216,22 @@
         }
       });
 
+      $('#discount').keyup(function() {
+        totalPrice = subtotal;
+        if ($(this).val() < 0 || $(this).val() > 100) {
+          $('#customError').html('Invalid discount!').show();
+          setTimeout(() => { $('#customError').hide(); } , 2000);
+        } else if ($(this).val() > 0) {
+          decimalVal = $(this).val() / 100;
+          totalDiscount = subtotal * decimalVal;
+          totalPrice = subtotal - totalDiscount;
+          $('#totalDiscount').html(`P${formatMoney(totalDiscount, 2, '.', ',')}`);
+        } else {
+          $('#totalDiscount').html('');
+        }
+        $('.total-price').html(`P${formatMoney(totalPrice, 2, '.', ',')}`);
+      });
+
       $("#closingAmount").keyup(function() {
         if ($(this).val() > 0) {
           $("#closeCashier").removeAttr('disabled');
@@ -229,6 +261,21 @@
         totalQty.value = JSON.stringify(totalQuantity);
         totalQty.name = "totalQuantity";
         form.appendChild(totalQty);
+
+        var subtotalAmount = document.createElement("input");
+        subtotalAmount.value = JSON.stringify(subtotal);
+        subtotalAmount.name = "subtotal";
+        form.appendChild(subtotalAmount);
+
+        var decimalDiscount = document.createElement("input");
+        decimalDiscount.value = JSON.stringify(decimalVal);
+        decimalDiscount.name = "decimalDiscount";
+        form.appendChild(decimalDiscount);
+
+        var discountTotal = document.createElement("input");
+        discountTotal.value = JSON.stringify(totalDiscount);
+        discountTotal.name = "totalDiscount";
+        form.appendChild(discountTotal);
 
         var totalPrc = document.createElement("input");
         totalPrc.value = JSON.stringify(totalPrice);
@@ -306,10 +353,12 @@
 
       function populateCart() {
         var html = "";
+        subtotal = 0;
         totalPrice = 0;
         totalQuantity = 0;
         cart.map(item => {
           var itemTotal = item.price * item.quantity;
+          subtotal += itemTotal;
           totalPrice += itemTotal;
           totalQuantity += item.quantity;
           html += `
@@ -336,6 +385,7 @@
         $("#items").html(html);
         $(".total-quantity").html(totalQuantity);
         $(".total-price").html(`P${formatMoney(totalPrice, 2, '.', ',')}`);
+        $("#subtotal").html(`P${formatMoney(subtotal, 2, '.', ',')}`);
         if (totalQuantity && $("#amount").val() > 0 && totalPrice <= $("#amount").val()) {
           $('#submitCheckout').removeAttr('disabled');
         } else {

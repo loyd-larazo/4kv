@@ -16,7 +16,7 @@
       {{ \Session::get('success') }}
     </div>
   @endif
-  <div class="alert alert-success text-center" id="item-success" role="alert">Item has been saved!</div>
+  <div class="alert alert-success text-center" id="itemSuccess" role="alert">Item has been saved!</div>
 
   <div class="">
     <input type="hidden" name="_token" value="{{ csrf_token() }}" />
@@ -230,7 +230,7 @@
 
   <script>
     $(function() {
-      $('#item-success').hide();
+      $('#itemSuccess').hide();
       var productItems = JSON.parse(@json($items));
       var suppliers = JSON.parse(@json($suppliers));
       var addedItems = [];
@@ -522,8 +522,8 @@
             itemSearch = productItems.map(item => {return {...item, label: item.name}});
             initializeAutocomplete();
             $('#itemsModal').modal('hide');
-            $('#item-success').show();
-            setTimeout(() => { $('#item-success').hide(); } , 2000);
+            $('#itemSuccess').show();
+            setTimeout(() => { $('#itemSuccess').hide(); } , 2000);
           }
         });
       }
