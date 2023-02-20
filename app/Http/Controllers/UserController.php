@@ -96,4 +96,19 @@ class UserController extends Controller
 
 		return redirect()->back()->with('success', 'Laborer has been deleted!'); 
 	}
+
+  public function resetPassword(Request $request) {
+		$id = $request->get('id');
+		$newPassword = $request->get('new_password');
+
+		if (isset($id)) {
+      $user = User::where('id', $id)->first();
+      if ($user) {
+				$user->password = app('hash')->make($newPassword);
+				$user->save();
+				return response()->json(['data' => true]);
+      }
+		}
+    return response()->json(['data' => false]);
+  }
 }

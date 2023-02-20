@@ -27,9 +27,14 @@
       </div>
     </form>
 
-    <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#userModal" id="addUser">
-      Add User
-    </button>
+    <div>
+      <button type="button" class="btn btn-outline-info" data-bs-toggle="modal" data-bs-target="#emailModal" id="editEmail">
+        <i class="fa fa-edit"></i>Admin's Email
+      </button>
+      <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#userModal" id="addUser">
+        Add User
+      </button>
+    </div>
   </nav>
 
   @if(\Session::get('error'))
@@ -249,6 +254,28 @@
     </div>
   </div>
 
+  <div class="modal fade" id="emailModal" tabindex="-1" aria-labelledby="emailModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-md">
+      <div class="modal-content">
+        <form id="emailForm" action="/settings" method="POST">
+          <input type="hidden" name="_token" value="{{ csrf_token() }}" />
+          <div class="modal-header">
+            <h5 class="modal-title" id="emailModalLabel">Update Admin's Email</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <div class="mb-3">
+              <input type="email" class="form-control required" name="email" required autocomplete="off">
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="submit" class="btn btn-outline-primary">Update</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
   <script>
     $(function() {
       $("#selectStatus").change(function() {
@@ -258,6 +285,26 @@
       $("#clear-search").click(function() {
         $('input[name="search"]').val("");
         $("#searchForm").submit();
+      });
+
+
+      $.ajaxSetup({
+        headers: { 'X-CSRF-TOKEN': $('input[name="_token"]').val() }
+      });
+
+      $('#editEmail').click(function() {
+        $('input[name="email"]').val("");
+
+        $.ajax({
+          type: 'GET',
+          dataType: 'json',
+          url: `/settings?type=email`,
+          success: (data) => {
+            if (data.data) {
+              $('input[name="email"]').val(data.data.value);
+            }
+          }
+        });
       });
 
       const today = new Date();
@@ -305,7 +352,6 @@
         var page = $(this).val();
         location.href = `/users?page=${page}`;
       });
-
     });
 
     $('#userForm').submit(function(event) {

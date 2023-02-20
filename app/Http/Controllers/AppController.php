@@ -19,23 +19,42 @@ use Carbon\Carbon;
 class AppController extends Controller
 {
   public function loginPage(Request $request) {
-    return view("login");
+    $email = Setting::where('key', 'email')->first();
+    $admin = User::where(['status' => 1, 'type' => 'admin'])->first();
+
+    return view("login", [
+      'email' => $email->value,
+      'admin' => $admin
+    ]);
   }
 
   public function login(Request $request) {
     $username = $request->get('username');
     $password = $request->get('password');
 
+    $email = Setting::where('key', 'email')->first();
+    $admin = User::where(['status' => 1, 'type' => 'admin'])->first();
+
     $user = User::where(DB::raw('BINARY `username`'), $username)
                 ->where('status', 1)
                 ->first();
     
     if (!$user) {
-      return view('/login', ['error' => 'Invalid credentials or no user account.', 'username' => $username]);
+      return view('/login', [
+        'error' => 'Invalid credentials or no user account.', 
+        'username' => $username, 
+        'email' => $email->value,
+        'admin' => $admin
+      ]);
     }
 
     if (!Hash::check($password, $user->password)) {
-      return view('/login', ['error' => 'Invalid credentials!', 'username' => $username]);
+      return view('/login', [
+        'error' => 'Invalid credentials!', 
+        'username' => $username,
+        'email' => $email->value,
+        'admin' => $admin
+      ]);
     }
 
     // Set session
@@ -153,16 +172,35 @@ class AppController extends Controller
   }
 
   public function settings(Request $request) {
+    $type = $request->get('type');
     $user = $request->session()->get('user');
     $warningLimit = $request->session()->get('warning_limit');
 
-    return view('settings', ['username' => $user, 'warning_limit' => $warningLimit]);
+    if ($type == 'email') {
+      $email = Setting::where('key', 'email')->first();
+      return response()->json(['data' => $email]);
+    }
+
+    return view('settings', [
+      'username' => $user, 
+      'warning_limit' => $warningLimit
+    ]);
   }
 
   public function updateSettings(Request $request) {
     $username = $request->get('username');
     $password = $request->get('password');
     $warningLimit = $request->get('warning-limit');
+    $email = $request->get('email');
+
+    if (isset($email)) {
+      Setting::updateOrCreate(
+        ['key' => 'email'],
+        ['value' => $email]
+      );
+
+      return redirect()->back()->with('success', "Admin's email has been updated!"); 
+    }
 
     if (isset($username)) {
       Setting::where('key', 'username')

@@ -12,6 +12,7 @@
 
       <script src="/js/jquery-3.6.1.min.js"></script>
       <script src="/bootstrap/js/bootstrap.min.js"></script>
+      <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
       <script>
         $(function() {
           sessionStorage.setItem('login', true);
@@ -39,6 +40,8 @@
                     {{ $error }}
                   </div>
                 @endif
+                <div id="customError" class="alert alert-danger text-center" role="alert"></div>
+                <div id="customSuccess" class="alert alert-success text-center" role="alert"></div>
 
                 <h3 class="mb-5">Sign in</h3>
                 <input style="display: none" type="text" name="fakeusernameremembered" />
@@ -67,9 +70,106 @@
                 <button class="btn btn-outline-success btn-lg btn-block" type="submit">Login</button>
               </div>
             </div>
+            <div class="reset-password">Reset password? Click <a href="#" data-bs-toggle="modal" data-bs-target="#resetModal">here</a></div>
           </div>
         </div>
       </form>
+
+      <div class="modal fade" id="resetModal" tabindex="-1" aria-labelledby="resetModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-sm">
+          <div class="modal-content">
+            <div>
+              <input type="hidden" name="_token" value="{{ csrf_token() }}" />
+              <div class="modal-header">
+                <h5 class="modal-title" id="resetModalLabel">Reset Password</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+              </div>
+              <div class="modal-body">
+                This is only resets admin account password.
+                If you are not, please contact your admin to change your password.<br><br>
+                Are you sure you want to reset password?
+              </div>
+              <div class="modal-footer">
+                <button type="button" id="resetBtn" class="btn btn-outline-warning">Yes</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <script>
+        $(function() {
+          $('#customSuccess').hide();
+          $('#customError').hide();
+          var email = "{{ $email }}";
+          var admin = @json($admin);
+
+          $('#resetBtn').click(function() {
+            var newPassword = generateRandomString(10);
+            changePassword(newPassword);
+          });
+
+          function generateRandomString(length) {
+            var result = '';
+            var characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+            var charactersLength = characters.length;
+            for (var i = 0; i < length; i++) {
+              result += characters.charAt(Math.floor(Math.random() * charactersLength));
+            }
+            return result;
+          }
+  
+          function sendEmailVerify(newPassword) {
+            var adminName = admin.firstname;
+            if (email && adminName && newPassword) {
+              var templateParams = {
+                to_email: email,
+                to_name: adminName,
+                new_password: newPassword
+              };
+    
+              emailjs.init("X2ZXzRKy8ySEQA-3K");
+              emailjs.send('service_yrxnvzh', 'template_hjq6u2a', templateParams)
+                .then(function(response) {
+                  console.log('SUCCESS!', response.status, response.text);
+                  $('#resetModal').modal('hide');
+                  $('#customSuccess').html('Please check your registered email.').show();
+                  setTimeout(() => { $('#customSuccess').hide(); } , 2000);
+                }, function(error) {
+                  alertError(error);
+                });
+            }
+          }
+
+          $.ajaxSetup({
+            headers: { 'X-CSRF-TOKEN': $('input[name="_token"]').val() }
+          });
+
+          function changePassword(newPassword) {
+            var adminId = admin.id;
+            console.log({adminId, newPassword})
+            $.ajax({
+              type: 'POST',
+              dataType: 'json',
+              url: `/reset-password`,
+              data: {
+                id: adminId,
+                new_password: newPassword
+              },
+              success: (data) => {
+                if (data.data) sendEmailVerify(newPassword);
+                else alertError(`Password not change.`);
+              }
+            });
+          }
+
+          function alertError(error) {
+            console.error(error);
+            $('#resetModal').modal('hide');
+            $('#customError').html('Something went wrong.').show();
+          }
+        });
+      </script>
     </section>
   </body>
 </html>

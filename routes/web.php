@@ -23,6 +23,7 @@ use App\Http\Controllers\POSController;
 
 Route::get('/login', [AppController::class, 'loginPage']);
 Route::post('/login', [AppController::class, 'login']);
+Route::post('/reset-password', [UserController::class, 'resetPassword']);
 
 Route::middleware([ValidateUser::class])->group(function () {
   Route::get('/', [AppController::class, 'index'])->name('dashboard');
