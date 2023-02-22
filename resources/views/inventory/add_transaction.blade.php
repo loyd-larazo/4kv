@@ -16,6 +16,7 @@
       {{ \Session::get('success') }}
     </div>
   @endif
+  <div class="alert alert-success text-center" id="itemSuccess" role="alert">Item has been saved!</div>
 
   <div class="">
     <input type="hidden" name="_token" value="{{ csrf_token() }}" />
@@ -23,7 +24,7 @@
     <div class="">
       <div class="mb-3">
         <label class="form-label">Stock Man</label>
-        <input type="text" class="form-control" placeholder="Stock Man" id="stockman" value="{{$user->firstname." ".$user->lastname}}" @disabled(true)/>
+        <input type="text" class="form-control" placeholder="Stock Man" id="stockman" value="{{$user->firstname." ".$user->lastname}}" @disabled(true) autocomplete="off"/>
       </div>
 
       <div class="mb-3">
@@ -59,11 +60,12 @@
             <div class="col-12 text-center">
               Can't find item? Click <a href="#" id="addNewItem" data-bs-toggle="modal" data-bs-target="#itemsModal">here</a> to add new item.
             </div>
+            <div id="addSupplierHolder" class="col-12 text-center"></div>
             <hr class="mt-4"/>
           </div>
   
           <div class="row m-0 p-0 search-items-container">
-            <table class="table">
+            <table class="table table-header-fixed">
               <thead class="thead-light">
                 <tr>
                   <th>Product</th>
@@ -178,8 +180,57 @@
     </div>
   </div>
 
+  <div class="modal fade" id="supplierModal" tabindex="-1" aria-labelledby="supplierModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <form action="/supplier" method="POST">
+          <input type="hidden" name="_token" value="{{ csrf_token() }}" />
+          <input type="hidden" name="id" />
+          <div class="modal-header">
+            <h5 class="modal-title" id="supplierModalLabel"><span id="type"></span> Supplier</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <div class="mb-3">
+              <label class="form-label">Name</label>
+              <input type="text" class="form-control" name="name" required autocomplete="off">
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label">Contact Person</label>
+              <input type="text" class="form-control" name="contact_person" required autocomplete="off">
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label">Contact Number</label>
+              <input type="number" class="form-control" name="contact_number" required autocomplete="off">
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label">Address</label>
+              <textarea class="form-control" name="address" required></textarea>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label">Status</label>
+              <select class="form-select" name="status" required>
+                <option value="">Select Option</option>
+                <option value="1">Active</option>
+                <option value="0">Disabled</option>
+              </select>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="submit" class="btn btn-outline-success">Save</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
   <script>
     $(function() {
+      $('#itemSuccess').hide();
       var productItems = JSON.parse(@json($items));
       var suppliers = JSON.parse(@json($suppliers));
       var addedItems = [];
@@ -263,11 +314,10 @@
           $('.supplier-select').change(function() {
             var searchItemId = $(this).data('id');
             var supplierId = $(this).val();
-
+            
             var searchItemIndex = searchItems.findIndex(si => si.id == searchItemId);
             searchItems[searchItemIndex].supplier_id = supplierId;
           });
-
           
           $('.add-to-transaction').click(function() {
             var itemId = $(this).data('id');
@@ -278,22 +328,26 @@
               return alert("Please select supplier.");
             }
 
-            var itemIndex = addedItems.findIndex(ai => (ai.id == item.id && ai.supplier == searchItem.supplier_id));
+            var itemIndex = addedItems.findIndex(ai => (ai.id == item.id && ai.supplier_id == searchItem.supplier_id));
             if (itemIndex >= 0) {
               var addedItem = addedItems[itemIndex];
               addedItem.quantity = parseFloat(addedItem.quantity) + 1;
               addedItems[itemIndex] = addedItem;
             } else {
               searchItem.quantity = 1;
-              addedItems.push(searchItem);
+              addedItems.push(JSON.parse(JSON.stringify(searchItem)));
             }
 
             populateItems();
           })
+
+          var addSupplierElem = `Can't find supplier? Click <a href="#" id="addNewSupplier" data-bs-toggle="modal" data-bs-target="#supplierModal">here</a> to add new supplier.`
+          $('#addSupplierHolder').html(addSupplierElem);
         } else {
           $('#itemResults').html(`<tr>
             <td class="text-center" colspan="5">No Item found</td>
           </tr>`);
+          $('#addSupplierHolder').html('');
         }
       }
 
@@ -310,8 +364,8 @@
               <td>${aItem.sku}</td>
               <td>${aItem.name}</td>
               <td>${selectedSupp.name}</td>
-              <td><input class="form-control added-item-qty" type="number" value="${aItem.quantity}" data-id="${aItem.id}" step="${(aItem.sold_by_weight || aItem.sold_by_length) ? '0.1' : '1'}"></td>
-              <td><input class="form-control added-item-cost" type="number" placeholder="Cost" value="${aItem.cost}" data-id="${aItem.id}"></td>
+              <td><input class="form-control added-item-qty" type="number" value="${aItem.quantity}" data-id="${aItem.id}" step="${(aItem.sold_by_weight || aItem.sold_by_length) ? '0.1' : '1'}" autocomplete="off"></td>
+              <td><input class="form-control added-item-cost" type="number" placeholder="Cost" value="${aItem.cost}" data-id="${aItem.id}" autocomplete="off"></td>
               <td>${formatMoney(totalCost, 2, '.', ',')}</td>
               <td>
                 <button data-id="${aItem.id}" class="btn btn-sm btn-danger delete-item">
@@ -422,21 +476,29 @@
         e.preventDefault();
         $('#modalError').html("").addClass('d-none');
 
-        var name = $('input[name="name"]').val();
-        var category = $('select[name="category"]').val();
+        var cost = $('input[name="cost"]').val();
+        var price = $('input[name="price"]').val();
+        if (cost > price) {
+          $('#modalError').html("The cost shouldn't higher than the price.").removeClass('d-none');
+          document.getElementById("itemsModal").scrollTop = 0;
+        } else {
+          var name = $('input[name="name"]').val();
+          var category = $('select[name="category"]').val();
 
-        $.ajax({
-          type: 'GET',
-          dataType: 'json',
-          url: `/validate/item/category/${category}?name=${name}`,
-          success: (data) => {
-            if (data.data) {
-              $('#modalError').html("Item with the same name and category is already exists.").removeClass('d-none');
-            } else {
-              addNewItem();
+          $.ajax({
+            type: 'GET',
+            dataType: 'json',
+            url: `/validate/item/category/${category}?name=${name}`,
+            success: (data) => {
+              if (data.data) {
+                $('#modalError').html("Item with the same name and category is already exists.").removeClass('d-none');
+                document.getElementById("itemsModal").scrollTop = 0;
+              } else {
+                addNewItem();
+              }
             }
-          }
-        });
+          });
+        }
       });
 
       function addNewItem() {
@@ -456,14 +518,19 @@
             isAjax: true,
           },
           success: (data) => {
-            console.log(data.data);
             productItems = data.data;
             itemSearch = productItems.map(item => {return {...item, label: item.name}});
             initializeAutocomplete();
             $('#itemsModal').modal('hide');
+            $('#itemSuccess').show();
+            setTimeout(() => { $('#itemSuccess').hide(); } , 2000);
           }
         });
       }
+
+      $('#addNewSupplier').click(function() {
+        $('#type').html("Add");
+      });
     });
   </script>
 @endsection

@@ -6,10 +6,17 @@
 
     <form class="row g-3 align-items-center" action="/transactions" method="GET">
       <div class="col-auto">
-        <input type="text" class="form-control" placeholder="Search Items in Transactions" name="search" value="{{$search}}" autocomplete="off">
+        <div class="form-control clear-input">
+          <input type="text" class="form-control" placeholder="Search Items in Transactions" name="search" value="{{$search}}" autocomplete="off">
+          @if(isset($search) && $search != '')
+            <button class="btn btn-sm btn-light" id="clear-search">
+              <i class="fa fa-times-circle"></i>
+            </button>
+          @endif
+        </div>
       </div>
       <div class="col-auto">
-        <input type="submit" class="form-control btn-outline-success" value="Search"/>
+        <input type="submit" class="form-control btn-outline-success" value="Search" autocomplete="off"/>
       </div>
     </form>
 
@@ -109,7 +116,7 @@
         <div class="modal-body">
           <div class="mb-3">
             <label class="form-label">Stock Man</label>
-            <input disabled class="form-control" name="stockman" id="stockMan"/>
+            <input disabled class="form-control" name="stockman" id="stockMan" autocomplete="off"/>
           </div>
 
           <div class="mb-3">
@@ -140,6 +147,11 @@
   
   <script>
     $(function() {
+      $("#clear-search").click(function() {
+        $('input[name="search"]').val("");
+        $("#searchForm").submit();
+      });
+
       $('.page-select').change(function() {
         var page = $(this).val();
         location.href = `/transactions?page=${page}`;

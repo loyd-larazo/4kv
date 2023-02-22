@@ -10,13 +10,13 @@
         
       <style type="text/css" media="print">
         @page {
-          margin: 0in;
-          size: landscape; 
+          size: landscape;
+          orientation: landscape;
         }
 
         @media print {
           body{
-            transform:scale(3);
+            /* transform:scale(3); */
           }
         }
       </style>
@@ -27,12 +27,18 @@
         }
 
         svg {
-          margin-top: calc(calc(100vh / 2) - 50px);
+          /* margin-top: calc(calc(100vh / 2) - 50px); */
+          padding-right: 5px;
+          padding-bottom: 5px;
         }
       </style>
   </head>
   <body onafterprint="window.close()">
-    <?php echo DNS1D::getBarcodeSVG($sku, 'C39', 1, 70) ?>
+    <?php
+      for ($i = 1; $i <= $noPrint; $i++) {
+        echo DNS1D::getBarcodeSVG($sku, 'C39', 1, 70);
+      }
+    ?>
 
     <script>
       $(function() {

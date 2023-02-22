@@ -12,14 +12,22 @@
         <label class="form-label col-auto pt-2">Status: </label>
         <select id="selectStatus" name="status" class="form-control col">
           <option {{!isset($status) || (isset($status) && $status == 1) ? 'selected' : ''}} value="1">Active</option>
-          <option {{(isset($status) && $status == 0) ? 'selected' : ''}} value="0">Disabled or 0 Stock</option>
+          <option {{(isset($status) && $status == 0) ? 'selected' : ''}} value="0">Disabled</option>
+          <option {{($isZeroStock == 1) ? 'selected' : ''}} value="-1">0 Stock</option>
         </select>
       </div>
       <div class="col-auto">
-        <input type="text" class="form-control" placeholder="Search SKU or Item" name="search" value="{{$search}}" autocomplete="off">
+        <div class="form-control clear-input">
+          <input type="text" class="form-control" placeholder="Search SKU or Item" name="search" value="{{$search}}" autocomplete="off">
+          @if(isset($search) && $search != '')
+            <button class="btn btn-sm btn-light" id="clear-search">
+              <i class="fa fa-times-circle"></i>
+            </button>
+          @endif
+        </div>
       </div>
       <div class="col-auto">
-        <input type="submit" class="form-control btn-outline-success" value="Search"/>
+        <input type="submit" class="form-control btn-outline-success" value="Search" autocomplete="off"/>
       </div>
     </form>
 
@@ -53,7 +61,7 @@
         <th class="mobile-col-md" scope="col">Category</th>
         <th class="mobile-col-sm" scope="col">Sold By</th>
         <th scope="col">Stock</th>
-        <th class="mobile-col-md" scope="col">Status</th>
+        {{-- <th class="mobile-col-md" scope="col">Status</th> --}}
         <th scope="col"></th>
       </tr>
     </thead>
@@ -69,7 +77,7 @@
 						<td class="mobile-col-md">{{ $item->category ? $item->category->name : "" }}</td>
 						<td class="mobile-col-sm">{{ $item->sold_by_weight ? 'Weight' : ($item->sold_by_length ? 'Length' : 'Stock') }}</td>
 						<td>{{ $item->stock }}</td>
-						<td class="mobile-col-md">{{ $item->status == 1 ? 'Active' : 'Disabled' }}</td>
+						{{-- <td class="mobile-col-md">{{ $item->status == 1 ? 'Active' : 'Disabled' }}</td> --}}
             <td>
               @if(in_array($user->type, ["admin", "stock man"]))
                 <button 
@@ -81,9 +89,13 @@
                   <i class="fa-solid fa-pen-to-square"></i>
                 </button>
               @endif
-              <a href="/item/{{ $item->sku }}/barcode" target="_blank" class="btn btn-sm btn-outline-primary barcode-item">
+              <button 
+                class="btn btn-sm btn-outline-primary barcode-item" 
+                data-bs-toggle="modal" 
+                data-bs-target="#barcodeModal" 
+                data-sku="{{ $item->sku }}">
                 <i class="fa-solid fa-barcode"></i>
-              </a>
+              </button>
             </td>
           </tr>
         @endforeach
@@ -177,7 +189,7 @@
 
 						<div class="mb-3" id="stockField">
               <label class="form-label">Stock</label>
-              <input type="number" class="form-control" name="stock" required autocomplete="off">
+              <input type="number" class="form-control" name="stock" min="1" required autocomplete="off">
             </div>
 
 						<div class="mb-3">
@@ -198,9 +210,39 @@
     </div>
   </div>
 
+  <div class="modal fade" id="barcodeModal" tabindex="-1" aria-labelledby="barcodeModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div>
+          <input type="hidden" name="barcodeSku"/>
+          <div class="modal-header">
+            <h5 class="modal-title" id="barcodeModalLabel">Barcode Item</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <div id="modalBarcodeError" class="alert alert-danger text-center d-none" role="alert"></div>
+            
+            <div class="mb-3">
+              <label class="form-label">Number of Barcode</label>
+              <input type="number" class="form-control" name="noBarcode" min="1" required autocomplete="off">
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button id="generateBarcodeBtn" type="button" class="btn btn-outline-success">Print</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <script>
     $(function() {
       $("#selectStatus").change(function() {
+        $("#searchForm").submit();
+      });
+
+      $("#clear-search").click(function() {
+        $('input[name="search"]').val("");
         $("#searchForm").submit();
       });
 
@@ -256,24 +298,46 @@
         e.preventDefault();
         $('#modalError').html("").addClass('d-none');
 
-        var sku = $('input[name="sku"]').val();
-        var name = $('input[name="name"]').val();
-        var category = $('select[name="category"]').val();
-        var skuURI = sku ? `&sku=${sku}` : '';
+        var cost = $('input[name="cost"]').val();
+        var price = $('input[name="price"]').val();
+        if (cost > price) {
+          $('#modalError').html("The cost shouldn't higher than the price.").removeClass('d-none');
+          document.getElementById("itemsModal").scrollTop = 0;
+        } else {
+          var sku = $('input[name="sku"]').val();
+          var name = $('input[name="name"]').val();
+          var category = $('select[name="category"]').val();
+          var skuURI = sku ? `&sku=${sku}` : '';
 
-        $.ajax({
-          type: 'GET',
-          dataType: 'json',
-          url: `/validate/item/category/${category}?name=${name}${skuURI}`,
-          success: (data) => {
-            if (data.data) {
-              $('#modalError').html("Item with the same name and category is already exists.").removeClass('d-none');
-            } else {
-              $(this).unbind('submit').submit();
+          $.ajax({
+            type: 'GET',
+            dataType: 'json',
+            url: `/validate/item/category/${category}?name=${name}${skuURI}`,
+            success: (data) => {
+              if (data.data) {
+                $('#modalError').html("Item with the same name and category is already exists.").removeClass('d-none');
+                document.getElementById("itemsModal").scrollTop = 0;
+              } else {
+                $(this).unbind('submit').submit();
+              }
             }
-          }
-        });
-      })
+          });
+        }
+      });
+
+      $('.barcode-item').click(function() {
+        $('#modalBarcodeError').html("").addClass('d-none');
+        var barcodeSku = $(this).data('sku');
+        $('input[name="barcodeSku"]').val(barcodeSku);
+        $('input[name="noBarcode"]').val("1");
+      });
+
+      $('#generateBarcodeBtn').click(function() {
+        var sku = $('input[name="barcodeSku"]').val();
+        var noBarcode = $('input[name="noBarcode"]').val();
+        $('#barcodeModal').modal('hide');
+        window.open(`/item/${sku}/barcode?noPrint=${noBarcode}`);
+      });
     });
   </script>
 @endsection

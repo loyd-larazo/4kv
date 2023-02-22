@@ -9,6 +9,7 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\ItemController;
 use App\Http\Controllers\TransactionController;
 use App\Http\Controllers\POSController;
+use App\Http\Controllers\ReportController;
 
 /*
 |--------------------------------------------------------------------------
@@ -23,6 +24,7 @@ use App\Http\Controllers\POSController;
 
 Route::get('/login', [AppController::class, 'loginPage']);
 Route::post('/login', [AppController::class, 'login']);
+Route::post('/reset-password', [UserController::class, 'resetPassword']);
 
 Route::middleware([ValidateUser::class])->group(function () {
   Route::get('/', [AppController::class, 'index'])->name('dashboard');
@@ -42,6 +44,7 @@ Route::middleware([ValidateUser::class])->group(function () {
   Route::get('/validate/item/category/{categoryId}', [ItemController::class, 'validateProductName']);
   Route::get('/return-items', [ItemController::class, 'returnItems'])->name('returnItems');
   Route::post('/return-items/{salesId}', [ItemController::class, 'saveReturnItems'])->name('saveReturnItems');
+  Route::get('/return-items/damage-type', [ItemController::class, 'damageItems'])->name('damageItems');
 
   Route::get('/suppliers', [ItemController::class, 'suppliers'])->name('suppliers');
   Route::post('/supplier', [ItemController::class, 'updateOrCreateSupplier']);
@@ -60,6 +63,10 @@ Route::middleware([ValidateUser::class])->group(function () {
   Route::post('/sales', [POSController::class, 'saveSales']);
   Route::get('/daily-sales', [POSController::class, 'dailySales'])->name('dailySales');
   Route::get('/sale/{saleId}', [POSController::class, 'printSale']);
+
+  Route::get('/reports', [ReportController::class, 'index']);
+  Route::get('/reports/load', [ReportController::class, 'loadData']);
+  Route::get('/report/{type}/print', [ReportController::class, 'print']);
 
   Route::get('/logout', [AppController::class, 'logout']);
 });

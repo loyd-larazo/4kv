@@ -61,6 +61,12 @@ class DatabaseSeeder extends Seeder
       'value' => '10'
     ]);
 
+    Setting::updateOrCreate([
+      'key' => 'email',
+    ], [
+      'value' => 'admin@gmail.com'
+    ]);
+
 
     $path = public_path() . "/data/seed.json";
     $items = json_decode(file_get_contents($path), true); 

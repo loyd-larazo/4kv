@@ -23,6 +23,18 @@
   </div>
   <div id="chartContainer" style="height: 370px; width: 100%;"></div>
 
+  <div class="row justify-content-end mx-0 px-0">
+    <div class="col-12 col-lg-3 align-self-end row mx-0 px-0">
+      <label class="col-auto pt-2">Filter Top Selling Items: </label>
+      <select class="form-control col" id="filterTopSelling">
+        <option {{$topSellingFilter == "Daily" ? "selected" : ""}} value="Daily">Daily</option>
+        <option {{$topSellingFilter == "Weekly" ? "selected" : ""}} value="Weekly">Weekly</option>
+        <option {{$topSellingFilter == "Monthly" ? "selected" : ""}} value="Monthly">Monthly</option>
+        <option {{$topSellingFilter == "Quarterly" ? "selected" : ""}} value="Quarterly">Quarterly</option>
+        <option {{$topSellingFilter == "Yearly" ? "selected" : ""}} value="Yearly">Yearly</option>
+      </select>
+    </div>
+  </div>
   <div class="mt-5">
     <h4>Top Selling Items:</h4>
     <table class="table">
@@ -111,8 +123,13 @@
         var type = $(this).val();
         location.href=`/?reportBy=${type}`;
       });
-      const today = new Date();
 
+      $('#filterTopSelling').change(function() {
+        var type = $(this).val();
+        location.href=`/?topSelling=${type}`;
+      });
+
+      const today = new Date();
       const weeks = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
       const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
       const quarters = [
@@ -182,8 +199,8 @@
               text: `${reportBy} Sales`
             },
             axisY: {
-              title: "Item Sold",
-              suffix: " items"
+              title: "Sales Amount",
+              suffix: " amount"
             },
             axisX: {
               title: xAxisLabel[reportBy]

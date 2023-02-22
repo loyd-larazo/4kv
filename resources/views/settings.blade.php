@@ -21,7 +21,7 @@
     <input type="hidden" name="_token" value="{{ csrf_token() }}" />
     <div class="form-group mt-3">
       <label for="warningLimit">Items Warning Limit</label>
-      <input type="number" name="warning-limit" class="form-control" id="warningLimit" placeholder="Warning Limit" value="{{ isset($warning_limit) ? $warning_limit : '' }}">
+      <input type="number" name="warning-limit" class="form-control" id="warningLimit" placeholder="Warning Limit" value="{{ isset($warning_limit) ? $warning_limit : '' }}" autocomplete="off">
     </div>
     <button type="submit" class="btn btn-outline-primary mt-3">Update</button>
   </form>

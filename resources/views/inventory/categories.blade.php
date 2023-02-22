@@ -16,10 +16,17 @@
         </select>
       </div>
       <div class="col-auto">
-        <input type="text" class="form-control" placeholder="Search Category" name="search" value="{{$search}}" autocomplete="off">
+        <div class="form-control clear-input">
+          <input type="text" class="form-control" placeholder="Search Category" name="search" value="{{$search}}" autocomplete="off">
+          @if(isset($search) && $search != '')
+            <button class="btn btn-sm btn-light" id="clear-search">
+              <i class="fa fa-times-circle"></i>
+            </button>
+          @endif
+        </div>
       </div>
       <div class="col-auto">
-        <input type="submit" class="form-control btn-outline-success" value="Search"/>
+        <input type="submit" class="form-control btn-outline-success" value="Search" autocomplete="off"/>
       </div>
     </form>
 
@@ -46,7 +53,7 @@
     <thead>
       <tr>
         <th scope="col">Name</th>
-        <th scope="col">Status</th>
+        {{-- <th scope="col">Status</th> --}}
         @if(in_array($user->type, ["admin", "stock man"]))
           <th scope="col"></th>
         @endif
@@ -57,7 +64,7 @@
         @foreach($categories as $category)
           <tr class="{{ $category->status ? '' : 'table-danger' }}">
             <td class="text-capitalize">{{ $category->name }}</td>
-            <td>{{ $category->status == 1 ? 'Active' : 'Disabled' }}</td>
+            {{-- <td>{{ $category->status == 1 ? 'Active' : 'Disabled' }}</td> --}}
             @if(in_array($user->type, ["admin", "stock man"]))
               <td>
                 <button 
@@ -69,13 +76,15 @@
                   <i class="fa-solid fa-pen-to-square"></i>
                 </button>
 
-                <button 
-                  class="btn btn-sm btn-outline-danger delete-category" 
-                  data-bs-toggle="modal" 
-                  data-bs-target="#deletecategoryModal" 
-                  data-id="{{ $category->id }}" >
-                  <i class="fa-solid fa-trash-can"></i>
-                </button>
+                @if(in_array($user->type, ["admin"]))
+                  <button 
+                    class="btn btn-sm btn-outline-danger delete-category" 
+                    data-bs-toggle="modal" 
+                    data-bs-target="#deletecategoryModal" 
+                    data-id="{{ $category->id }}" >
+                    <i class="fa-solid fa-trash-can"></i>
+                  </button>
+                @endif
               </td>
             @endif
           </tr>
@@ -166,6 +175,11 @@
   <script>
     $(function() {
       $("#selectStatus").change(function() {
+        $("#searchForm").submit();
+      });
+
+      $("#clear-search").click(function() {
+        $('input[name="search"]').val("");
         $("#searchForm").submit();
       });
 

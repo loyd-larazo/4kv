@@ -13,22 +13,32 @@ class UserController extends Controller
 	public function index(Request $request) {
 		$page = $request->get('page') ?? 1;
     $search = $request->get('search');
+		$status = $request->get('status');
+		$status = $status == null ? 1 : $status;
+
     Paginator::currentPageResolver(function() use ($page) {
       return $page;
     });
 
 		$users = User::when($search, function($query) use ($search) {
-                          $query->where('username', 'like', "%$search%")
-                                ->orWhere('firstname', 'like', "%$search%")
-                                ->orWhere('lastname', 'like', "%$search%")
-                                ->orWhere('gender', 'like', "%$search%")
-                                ->orWhere('address', 'like', "%$search%")
-                                ->orWhere('contact_number', 'like', "%$search%");
-                        })
-                        ->orderBy('status', 'desc')
-                        ->paginate(20);
+											$query->where(function($query) use ($search) {
+												$query->where('username', 'like', "%$search%")
+															->orWhere('firstname', 'like', "%$search%")
+															->orWhere('lastname', 'like', "%$search%")
+															->orWhere('gender', 'like', "%$search%")
+															->orWhere('address', 'like', "%$search%")
+															->orWhere('contact_number', 'like', "%$search%");
+											});
+										})
+										->where('status', $status)
+										->orderBy('created_at', 'desc')
+										->paginate(20);
 
-		return view('inventory.users', ['users' => $users, 'search' => $search]);
+		return view('inventory.users', [
+			'users' => $users, 
+			'search' => $search, 
+			'status' => $status
+		]);
 	}
 
 	public function updateOrCreate(Request $request) {
@@ -86,4 +96,19 @@ class UserController extends Controller
 
 		return redirect()->back()->with('success', 'Laborer has been deleted!'); 
 	}
+
+  public function resetPassword(Request $request) {
+		$id = $request->get('id');
+		$newPassword = $request->get('new_password');
+
+		if (isset($id)) {
+      $user = User::where('id', $id)->first();
+      if ($user) {
+				$user->password = app('hash')->make($newPassword);
+				$user->save();
+				return response()->json(['data' => true]);
+      }
+		}
+    return response()->json(['data' => false]);
+  }
 }

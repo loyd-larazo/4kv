@@ -12,6 +12,9 @@ use App\Models\SaleItem;
 use App\Models\DailySale;
 
 use Carbon\Carbon;
+use DateTime;
+use DateTimeZone;
+
 
 class POSController extends Controller
 {
@@ -118,6 +121,9 @@ class POSController extends Controller
     $totalQuantity = $request->get('totalQuantity');
     $totalPrice = $request->get('totalPrice');
     $amount = $request->get('amount');
+    $subtotal = $request->get('subtotal');
+    $decimalDiscount = $request->get('decimalDiscount');
+    $totalDiscount = $request->get('totalDiscount');
     
 		$code = strtoupper("S".date("Y").date("m").date("d").uniqid(true));
     $today = Carbon::today();
@@ -128,9 +134,12 @@ class POSController extends Controller
       'daily_sale_id' => $dailySale->id,
       'reference' => $code,
       'total_quantity' => $totalQuantity,
-      'total_amount' => $totalPrice,
+      'total_amount' => (float)$totalPrice,
       'paid_amount' => (float)$amount,
-      'change_amount' => (float)$amount - (float)$totalPrice
+      'change_amount' => (float)$amount - (float)$totalPrice,
+      'subtotal_amount' => (float)$subtotal,
+      'discount' => (float)$decimalDiscount,
+      'total_discount' => (float)$totalDiscount
     ]);
 
     foreach($items as $item) {
@@ -151,11 +160,12 @@ class POSController extends Controller
   }
 
   public function printSale(Request $request, $saleId) {
-    $sale = Sale::where('id', $saleId)->with('items.item')->first();
+    $sale = Sale::where('id', $saleId)->with('items.item', 'user')->first();
     $taxPercent = 12 / 100;
     $vat = $sale->total_amount * $taxPercent;
+    $createdDate = Carbon::parse($sale->created_at)->tz('Asia/Manila')->format('F j, Y g:i a');
 
-    return view('pos.receipt', ['sale' => $sale, 'vat' => $vat]);
+    return view('pos.receipt', ['sale' => $sale, 'vat' => $vat, 'createdDate' => $createdDate]);
   }
 
   public function dailySales(Request $request) {
