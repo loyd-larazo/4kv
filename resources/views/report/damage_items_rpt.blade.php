@@ -22,8 +22,8 @@
         <tbody>
           @foreach ($data as $item)
             <?php
-              $price = number_format((float)$item->item->price, 2, '.', '');
-              $totalPrice = number_format((float)$item->total_price, 2, '.', '');
+              $price = number_format((float)$item->item->price, 2, '.', ',');
+              $totalPrice = number_format((float)$item->total_price, 2, '.', ',');
             ?>
             <tr>
               @if (in_array(1, $cols))<td>{{ $item->item->sku }}</td>@endif

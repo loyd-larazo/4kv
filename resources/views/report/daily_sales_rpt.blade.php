@@ -28,13 +28,13 @@
           @foreach ($data as $item)
             <?php
               $date = date("F j, Y", strtotime($item->created_at));
-              $salesAmount = number_format((float)$item->sales_amount, 2, '.', '');
-              $openingAmount = number_format((float)$item->opening_amount, 2, '.', '');
-              $closingAmount = number_format((float)$item->closing_amount, 2, '.', '');
-              $diff = number_format((float)$item->difference_amount, 2, '.', '');
+              $salesAmount = number_format((float)$item->sales_amount, 2, '.', ',');
+              $openingAmount = number_format((float)$item->opening_amount, 2, '.', ',');
+              $closingAmount = number_format((float)$item->closing_amount, 2, '.', ',');
+              $diff = number_format((float)$item->difference_amount, 2, '.', ',');
 
-              $ou = $item->opening_user;
-              $cu = $item->closing_user;
+              $ou = $item->openingUser;
+              $cu = $item->closingUser;
               $oFname = (isset($ou) && $ou->firstname) ? $ou->firstname : '';
               $oLname = (isset($ou) && $ou->lastname) ? $ou->lastname : '';
               $cFname = (isset($cu) && $cu->firstname) ? $cu->firstname : '';

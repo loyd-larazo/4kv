@@ -43,12 +43,14 @@
     <hr>
   </div>
 
-  <table class="table">
-    <thead id="thead">
-    </thead>
-    <tbody id="tbody">
-    </tbody>
-  </table>
+  <div class="table-responsive">
+    <table class="table">
+      <thead id="thead">
+      </thead>
+      <tbody id="tbody">
+      </tbody>
+    </table>
+  </div>
 
   <div class="modal fade" id="filterRptModal" tabindex="-1" aria-labelledby="filterRptModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-md">

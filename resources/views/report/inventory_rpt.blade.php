@@ -26,8 +26,8 @@
         <tbody>
           @foreach ($data as $item)
             <?php
-              $cost = number_format((float)$item->cost, 2, '.', '');
-              $price = number_format((float)$item->price, 2, '.', '');
+              $cost = number_format((float)$item->cost, 2, '.', ',');
+              $price = number_format((float)$item->price, 2, '.', ',');
               $byLength = ($item->sold_by_length ? 'Yes' : 'No');
               $byWeight = ($item->sold_by_weight ? 'Yes' : 'No');
               $category = (isset($item->category) && $item->category->name) ? $item->category->name : '';
