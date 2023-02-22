@@ -10,11 +10,15 @@
       <link href="/fontawesome/css/all.min.css" rel="stylesheet">
       <link href="/css/app.css" rel="stylesheet">
       <link href="/jquery-ui/jquery-ui.min.css" rel="stylesheet">
-      
+      <link rel="stylesheet" type="text/css" href="//cdn.jsdelivr.net/bootstrap.daterangepicker/2/daterangepicker.css" />
+
       <script src="/js/jquery-3.6.1.min.js"></script>
       <script src="/js/jquery.canvasjs.min.js"></script>
       <script src="/jquery-ui/jquery-ui.min.js"></script>
       <script src="/bootstrap/js/bootstrap.bundle.min.js"></script>
+      <script type="text/javascript" src="//cdn.jsdelivr.net/momentjs/latest/moment.min.js"></script>
+      <script type="text/javascript" src="//cdn.jsdelivr.net/bootstrap.daterangepicker/2/daterangepicker.js"></script>
+      
       <script>
         const isLoggedin = sessionStorage.getItem('login');
         if (!isLoggedin) location.href = "/logout";
@@ -105,6 +109,11 @@
               <li>
                 <a class="nav-link {{ in_array(request()->route()->getName(), ['users'])  ? 'text-primary' : '' }}" href="/users">
                   <i class="fa-solid fa-users me-3"></i><span>Users</span>
+                </a>
+              </li>
+              <li>
+                <a class="nav-link {{ in_array(request()->route()->getName(), ['report'])  ? 'text-primary' : '' }}" href="/reports">
+                  <i class="fa-solid fa-file me-3"></i><span>Reports</span>
                 </a>
               </li>
             @endif

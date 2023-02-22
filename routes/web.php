@@ -9,6 +9,7 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\ItemController;
 use App\Http\Controllers\TransactionController;
 use App\Http\Controllers\POSController;
+use App\Http\Controllers\ReportController;
 
 /*
 |--------------------------------------------------------------------------
@@ -62,6 +63,10 @@ Route::middleware([ValidateUser::class])->group(function () {
   Route::post('/sales', [POSController::class, 'saveSales']);
   Route::get('/daily-sales', [POSController::class, 'dailySales'])->name('dailySales');
   Route::get('/sale/{saleId}', [POSController::class, 'printSale']);
+
+  Route::get('/reports', [ReportController::class, 'index']);
+  Route::get('/reports/load', [ReportController::class, 'loadData']);
+  Route::get('/report/{type}/print', [ReportController::class, 'print']);
 
   Route::get('/logout', [AppController::class, 'logout']);
 });

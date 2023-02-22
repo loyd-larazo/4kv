@@ -153,3 +153,7 @@
   text-align: center;
   padding-top: 2px;
 }
+
+.table-rpt thead {
+  background: #e9ecef;
+}
