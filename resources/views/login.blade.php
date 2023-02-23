@@ -128,8 +128,8 @@
                 new_password: newPassword
               };
     
-              emailjs.init("X2ZXzRKy8ySEQA-3K");
-              emailjs.send('service_yrxnvzh', 'template_hjq6u2a', templateParams)
+              emailjs.init("Kl3kdiSrMNGEK0Tqt");
+              emailjs.send('service_dwirg5s', 'template_8mqe2np', templateParams)
                 .then(function(response) {
                   console.log('SUCCESS!', response.status, response.text);
                   $('#resetModal').modal('hide');
