@@ -76,7 +76,7 @@
       </form>
 
       <div class="modal fade" id="resetModal" tabindex="-1" aria-labelledby="resetModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-sm">
+        <div class="modal-dialog modal-md">
           <div class="modal-content">
             <div>
               <input type="hidden" name="_token" value="{{ csrf_token() }}" />
@@ -85,12 +85,11 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
               </div>
               <div class="modal-body">
-                This is only resets admin account password.
-                If you are not, please contact your admin to change your password.<br><br>
-                Are you sure you want to reset password?
+                Please enter your email to reset your password:
+                <input type="email" class="form-control" id="inputEmail">
               </div>
               <div class="modal-footer">
-                <button type="button" id="resetBtn" class="btn btn-outline-warning">Yes</button>
+                <button type="button" id="resetBtn" class="btn btn-outline-secondary" disabled>Yes</button>
               </div>
             </div>
           </div>
@@ -104,9 +103,19 @@
           var email = "{{ $email }}";
           var admin = @json($admin);
 
+          $('#inputEmail').keyup(function() {
+            let val = $(this).val();
+            if (val == email)
+              $('#resetBtn').removeAttr('disabled').removeClass('btn-outline-secondary').addClass('btn-outline-warning');
+            else
+              $('#resetBtn').attr('disabled', 'disabled').removeClass('btn-outline-warning').addClass('btn-outline-secondary');
+          });
+
           $('#resetBtn').click(function() {
-            var newPassword = generateRandomString(10);
-            changePassword(newPassword);
+            if ($('#inputEmail').val() == email) {
+              var newPassword = generateRandomString(10);
+              changePassword(newPassword);
+            }
           });
 
           function generateRandomString(length) {
@@ -147,7 +156,6 @@
 
           function changePassword(newPassword) {
             var adminId = admin.id;
-            console.log({adminId, newPassword})
             $.ajax({
               type: 'POST',
               dataType: 'json',
