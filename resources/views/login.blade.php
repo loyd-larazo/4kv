@@ -143,7 +143,7 @@
                   console.log('SUCCESS!', response.status, response.text);
                   $('#resetModal').modal('hide');
                   $('#customSuccess').html('Please check your registered email.').show();
-                  setTimeout(() => { $('#customSuccess').hide(); } , 2000);
+                  // setTimeout(() => { $('#customSuccess').hide(); } , 2000);
                 }, function(error) {
                   alertError(error);
                 });

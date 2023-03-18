@@ -68,7 +68,14 @@
 
   <script>
     $(function() {
-  
+      $('.page-select').change(function() {
+        search();
+      });
+
+      function search(p, d) {
+        var page = p || $('.page-select').val();
+        location.href = `/daily-sales?page=${page}`;
+      }
     });
   </script>
 @endsection

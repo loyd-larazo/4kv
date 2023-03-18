@@ -267,6 +267,9 @@
             <div class="mb-3">
               <input type="email" class="form-control required" name="email" required autocomplete="off">
             </div>
+            <div class="mb-3">
+              <input type="email" class="form-control required" name="confirm-email" required autocomplete="off">
+            </div>
           </div>
           <div class="modal-footer">
             <button type="submit" class="btn btn-outline-primary">Update</button>

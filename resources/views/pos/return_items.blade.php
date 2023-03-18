@@ -354,6 +354,15 @@
           i.substr(j).replace(/(\decSep{3})(?=\decSep)/g, "$1" + thouSep) +
           (decPlaces ? decSep + Math.abs(number - i).toFixed(decPlaces).slice(2) : "");
     }
+
+    $('.page-select').change(function() {
+      search();
+    });
+
+    function search(p, d) {
+      var page = p || $('.page-select').val();
+      location.href = `/return-items?page=${page}`;
+    }
   });
 </script>
 @endsection

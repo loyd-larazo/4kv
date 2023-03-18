@@ -49,7 +49,7 @@ class TransactionController extends Controller
 		$items = Item::select('id', 'sku', 'name', 'price', 'cost', 'stock', 'category_id', 'sold_by_weight', 'sold_by_length')
                 ->where('status', 1)
                 ->get();
-    $categories = Category::orderBy('name', 'asc')->get();
+    $categories = Category::where('status', 1)->orderBy('name', 'asc')->get();
 
     return view('inventory.add_transaction', [
       'user' => $user,

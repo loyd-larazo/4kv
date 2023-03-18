@@ -216,11 +216,11 @@
         }
       });
 
-      $('#discount').keyup(function() {
+      $('#discount').on('change paste keyup focus', function() {
         totalPrice = subtotal;
         if ($(this).val() < 0 || $(this).val() > 100) {
           $('#customError').html('Invalid discount!').show();
-          setTimeout(() => { $('#customError').hide(); } , 2000);
+          // setTimeout(() => { $('#customError').hide(); } , 2000);
         } else if ($(this).val() > 0) {
           decimalVal = $(this).val() / 100;
           totalDiscount = subtotal * decimalVal;

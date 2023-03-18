@@ -65,6 +65,15 @@
 </table>
 
 <script>
+  $(function() {
+    $('.page-select').change(function() {
+      search();
+    });
 
+    function search(p, d) {
+      var page = p || $('.page-select').val();
+      location.href = `/return-items/damage-type?page=${page}`;
+    }
+  });
 </script>
 @endsection

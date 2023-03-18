@@ -60,7 +60,9 @@
             <div class="col-12 text-center">
               Can't find item? Click <a href="#" id="addNewItem" data-bs-toggle="modal" data-bs-target="#itemsModal">here</a> to add new item.
             </div>
-            <div id="addSupplierHolder" class="col-12 text-center"></div>
+            <div id="addSupplierHolder" class="col-12 text-center">
+              Can't find supplier? Click <a href="#" id="addNewSupplier" data-bs-toggle="modal" data-bs-target="#supplierModal">here</a> to add new supplier.
+            </div>
             <hr class="mt-4"/>
           </div>
   
@@ -340,14 +342,10 @@
 
             populateItems();
           })
-
-          var addSupplierElem = `Can't find supplier? Click <a href="#" id="addNewSupplier" data-bs-toggle="modal" data-bs-target="#supplierModal">here</a> to add new supplier.`
-          $('#addSupplierHolder').html(addSupplierElem);
         } else {
           $('#itemResults').html(`<tr>
             <td class="text-center" colspan="5">No Item found</td>
           </tr>`);
-          $('#addSupplierHolder').html('');
         }
       }
 
@@ -523,7 +521,7 @@
             initializeAutocomplete();
             $('#itemsModal').modal('hide');
             $('#itemSuccess').show();
-            setTimeout(() => { $('#itemSuccess').hide(); } , 2000);
+            // setTimeout(() => { $('#itemSuccess').hide(); } , 2000);
           }
         });
       }
