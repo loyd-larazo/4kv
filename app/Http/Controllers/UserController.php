@@ -57,6 +57,10 @@ class UserController extends Controller
 		$salary = $request->get('salary');
 		$status = $request->get('status');
 
+		// $usernameExist = User::where(['status' => 1, 'username' => $username])->first();
+		// if (isset($id) && $usernameExist && $usernameExist->id == $id) $usernameExist = null;
+		// if ($usernameExist) return response()->json(['error' => 'Username is already existing.']);
+
     $data = [
 			'username' => $username,
 			'type' => $type,
@@ -111,4 +115,19 @@ class UserController extends Controller
 		}
     return response()->json(['data' => false]);
   }
+
+	public function validateUsername(Request $request) {
+		$username = $request->get('username');
+		$id = $request->get('id');
+
+		$usernameExist = User::where(['status' => 1, 'username' => $username])->first();
+
+		if (isset($id) && $usernameExist && $usernameExist->id == $id)
+			$usernameExist = null;
+
+		if ($usernameExist) 
+			return response()->json(['error' => 'Username is already taken.']);
+			
+		return response()->json(['data' => true]);
+	}
 }

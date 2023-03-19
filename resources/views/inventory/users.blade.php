@@ -138,6 +138,8 @@
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
           </div>
           <div class="modal-body">
+            <div id="modalError" class="alert alert-danger text-center" role="alert"></div>
+
             <div class="mb-3" id="changePasswordParent">
               <input type="checkbox" id="changePassword" name="change_password" autocomplete="off"/>
               <label class="form-label" for="changePassword">Change Password</label>
@@ -225,7 +227,7 @@
             </div>
           </div>
           <div class="modal-footer">
-            <button type="submit" class="btn btn-outline-success">Save</button>
+            <button type="submit" class="btn btn-outline-success" id="saveUser">Save</button>
           </div>
         </form>
       </div>
@@ -304,6 +306,26 @@
         headers: { 'X-CSRF-TOKEN': $('input[name="_token"]').val() }
       });
 
+      $('input[name="username"]').change(function() {
+        $('#modalError').hide();
+        $('#saveUser').removeAttr('disabled');
+        
+        let usernameVal = $(this).val();
+        let idVal = $('input[name="id"]').val() || undefined;
+
+        $.ajax({
+          type: 'GET',
+          dataType: 'json',
+          url: `/validate/user?username=${usernameVal}&id=${idVal}`,
+          success: (data) => {
+            if (data.error) {
+              $('#saveUser').attr('disabled', true);
+              $('#modalError').html(data.error).show();
+            }
+          }
+        });
+      });
+
       $('#editEmail').click(function() {
         $('#confirmWrapper').hide();
         $('#updateEmail').attr('disabled', true);
@@ -331,6 +353,7 @@
       });
 
       $('#addUser').click(function() {
+        $('#modalError').hide();
         $('#type').html("Add");
         resetForm(true);
         $('#changePasswordParent').addClass("d-none");
@@ -338,6 +361,7 @@
       });
 
       $('.edit-user').click(function() {
+        $('#modalError').hide();
         $('#type').html("Edit");
         resetForm(true);
         $('#changePasswordParent').removeClass("d-none");
