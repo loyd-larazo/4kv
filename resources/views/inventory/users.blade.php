@@ -265,14 +265,14 @@
           </div>
           <div class="modal-body">
             <div class="mb-3">
-              <input type="email" class="form-control required" name="email" required autocomplete="off">
+              <input type="email" class="form-control required" name="email" required autocomplete="off" placeholder="Email">
             </div>
-            <div class="mb-3">
-              <input type="email" class="form-control required" name="confirm-email" required autocomplete="off">
+            <div id="confirmWrapper" class="mb-3">
+              <input type="email" class="form-control required" name="confirmEmail" required autocomplete="off" placeholder="Confirm Email">
             </div>
           </div>
           <div class="modal-footer">
-            <button type="submit" class="btn btn-outline-primary">Update</button>
+            <button type="submit" class="btn btn-outline-primary" id="updateEmail">Update</button>
           </div>
         </form>
       </div>
@@ -290,13 +290,25 @@
         $("#searchForm").submit();
       });
 
+      $('input[name="email"]').on('change keyup', function() {
+        $('#confirmWrapper').show();
+      });
+
+      $('input[name="confirmEmail"]').on('change keyup paste', function() {
+        if ($('input[name="email"]').val() === $('input[name="confirmEmail"]').val())
+          $('#updateEmail').removeAttr('disabled');
+        else $('#updateEmail').attr('disabled', true);
+      })
 
       $.ajaxSetup({
         headers: { 'X-CSRF-TOKEN': $('input[name="_token"]').val() }
       });
 
       $('#editEmail').click(function() {
+        $('#confirmWrapper').hide();
+        $('#updateEmail').attr('disabled', true);
         $('input[name="email"]').val("");
+        $('input[name="confirmEmail"]').val("");
 
         $.ajax({
           type: 'GET',
