@@ -45,7 +45,7 @@
               </div>
               <div class="col-12 p-0 mt-2">
                 <select id="category" class="form-control">
-                  <option>Search by Category</option>
+                  <option value="">Search by Category</option>
                   @foreach(json_decode($categories) as $category)
                     <option value="{{$category->id}}">{{ $category->name }}</option>
                   @endforeach
@@ -272,6 +272,8 @@
           var categoryId = $(this).val();
           searchItems = productItems.filter(item => item.category_id == categoryId);
           updateSearchItems();
+        } else {
+          $('#itemResults').html('');
         }
       });
 
@@ -311,7 +313,7 @@
           });
           $('#itemResults').html(itemHtml);
           $('#sku').val("");
-          $('#category').val($("#category option:first").val());
+          $('#category').val($("#category option:selected").val());
 
           $('.supplier-select').change(function() {
             var searchItemId = $(this).data('id');
