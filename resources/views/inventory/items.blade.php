@@ -189,7 +189,7 @@
 
 						<div class="mb-3" id="stockField">
               <label class="form-label">Stock</label>
-              <input type="number" class="form-control" name="stock" min="1" required autocomplete="off">
+              <input type="number" class="form-control" name="stock" autocomplete="off">
             </div>
 
 						<div class="mb-3">
@@ -249,7 +249,7 @@
       $('#addItem').click(function() {
         $('#type').html("Add");
         $('#skuField').hide();
-        $('#stockField').show();
+        $('#stockField').hide();
         $('#modalError').html("").addClass('d-none');
 
         $('input[name="id"]').val("");
@@ -260,7 +260,7 @@
         $('textarea[name="description"]').val("");
         $('select[name="sold_by"]').val("");
         $('select[name="category"]').val("");
-        $('input[name="stock"]').val("");
+        $('input[name="stock"]').val(0);
         $('select[name="status"]').val("");
       });
 
