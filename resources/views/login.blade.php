@@ -17,11 +17,18 @@
         $(function() {
           sessionStorage.setItem('login', true);
 
-          $('#typePasswordX-2').on('change paste keyup focus', function() {
+          $('#typePasswordX-2').on('change paste keyup focus', function(event) {
             if ($(this).val()) {
               $(this).attr('type', 'password');
             } else {
               $(this).attr('type', 'text');
+            }
+
+            if (event.code === 'Space') {
+              event.preventDefault();
+              const inputValue = $(this).val();
+              const newValue = inputValue.replace(/\s/g, '');
+              $(this).val(newValue);
             }
           });
         });

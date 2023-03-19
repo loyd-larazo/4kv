@@ -302,6 +302,15 @@
         else $('#updateEmail').attr('disabled', true);
       })
 
+      $('input[type="password"]').keyup(function(event) {
+        if (event.code === 'Space') {
+          event.preventDefault();
+          const inputValue = $(this).val();
+          const newValue = inputValue.replace(/\s/g, '');
+          $(this).val(newValue);
+        }
+      });
+
       $.ajaxSetup({
         headers: { 'X-CSRF-TOKEN': $('input[name="_token"]').val() }
       });
