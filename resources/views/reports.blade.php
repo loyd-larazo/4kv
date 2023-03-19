@@ -68,6 +68,10 @@
             </div>
             <div>
               <label class="form-label">Check Columns to Include: </label>
+              <li id="includeAll" class="form-check">
+                <input id="itemAll" type="checkbox" class="form-check-input">
+                <label class="form-check-label text-capitalize" for="itemAll">Include All</label>
+              </li>
               <ul id="columnOptionsContainer" class="list-unstyled"></ul>
             </div>
           </div>
@@ -95,6 +99,7 @@
         $("#tbody").html('');
         $('.print').hide();
         $('#printBtnContainer').html('').removeClass('col-auto d-flex align-items-center filter print');
+        $('#itemAll').prop('checked', false);
       });
 
       // Populate data on modal
@@ -144,12 +149,26 @@
           let value = columnList[key].replace(/_/g, " ");
           const listItem = $(`<li class="form-check">`);
           listItem.html(`
-            <input id="item${key}" type="checkbox" data-index="${key}" class="form-check-input">
+            <input id="item${key}" type="checkbox" data-index="${key}" class="form-check-input column-option">
             <label class="form-check-label text-capitalize" for="item${key}">${value}</label>
           `);
           columnContainer.append(listItem);
         }
+
+        if (columnList) {
+          $('#includeAll').show();
+
+          $('.column-option').change(function() {
+            let uncheckedExist = $('.column-option:not(:checked)').length > 0;
+            $('#itemAll').prop('checked', !uncheckedExist);
+          });
+        } else $('#includeAll').hide();
       }
+
+      $('#itemAll').change(function() {
+        let isChecked = $(this).prop('checked');
+        $('.column-option').prop('checked', isChecked);
+      });
 
       // Get filter data from modal
       $('#addFilterBtn').click(function() {

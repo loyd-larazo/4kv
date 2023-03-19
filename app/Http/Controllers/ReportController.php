@@ -138,6 +138,9 @@ class ReportController extends Controller
   }
 
   private function getData($rptType, $sDate, $eDate) {
+    $sDate = Carbon::parse($sDate)->startOfDay()->subHours(8)->format('Y-m-d H:i:s');
+    $eDate = Carbon::parse($eDate)->endOfDay()->subHours(8)->format('Y-m-d H:i:s');
+
     switch($rptType) {
       case('topSelling'):
         $topSelling = 100;
