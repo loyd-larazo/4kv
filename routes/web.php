@@ -49,6 +49,7 @@ Route::middleware([ValidateUser::class])->group(function () {
 
   Route::get('/suppliers', [ItemController::class, 'suppliers'])->name('suppliers');
   Route::post('/supplier', [ItemController::class, 'updateOrCreateSupplier']);
+  Route::get('/validate/supplier', [ItemController::class, 'validateSupplier']);
 
   Route::get('/settings', [AppController::class, 'settings'])->name('settings');
   Route::post('/settings', [AppController::class, 'updateSettings'])->name('updateSettings');

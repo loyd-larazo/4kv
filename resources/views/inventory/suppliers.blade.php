@@ -115,6 +115,8 @@
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
           </div>
           <div class="modal-body">
+            <div id="modalError" class="alert alert-danger text-center" role="alert"></div>
+
             <div class="mb-3">
               <label class="form-label">Name</label>
               <input type="text" class="form-control" name="name" required autocomplete="off">
@@ -145,7 +147,7 @@
             </div>
           </div>
           <div class="modal-footer">
-            <button type="submit" class="btn btn-outline-success">Save</button>
+            <button type="submit" class="btn btn-outline-success" id="saveSupplier">Save</button>
           </div>
         </form>
       </div>
@@ -158,16 +160,18 @@
         $("#searchForm").submit();
       });
 
-    $("#clear-search").click(function() {
-      $('input[name="search"]').val("");
-      $("#searchForm").submit();
-    });
+      $("#clear-search").click(function() {
+        $('input[name="search"]').val("");
+        $("#searchForm").submit();
+      });
 
       $('#addSupplier').click(function() {
+        $('#modalError').hide();
         $('#type').html("Add");
       });
 
       $('.edit-supplier').click(function() {
+        $('#modalError').hide();
         $('#type').html("Edit");
         var data = $(this).data('json');
 
@@ -184,6 +188,29 @@
         location.href = `/suppliers?page=${page}`;
       });
 
+      $.ajaxSetup({
+        headers: { 'X-CSRF-TOKEN': $('input[name="_token"]').val() }
+      });
+
+      $('input[name="name"]').change(function() {
+        $('#modalError').hide();
+        $('#saveSupplier').removeAttr('disabled');
+
+        let nameVal = $(this).val();
+        let idVal = $('input[name="id"]').val() || undefined;
+
+        $.ajax({
+          type: 'GET',
+          dataType: 'json',
+          url: `/validate/supplier?name=${nameVal}&id=${idVal}`,
+          success: (data) => {
+            if (data.error) {
+              $('#saveSupplier').attr('disabled', true);
+              $('#modalError').html(data.error).show();
+            }
+          }
+        });
+      });
     });
   </script>
 @endsection
