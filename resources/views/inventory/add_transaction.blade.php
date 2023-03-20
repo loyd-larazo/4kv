@@ -354,13 +354,14 @@
       function populateItems() {
         var html = "";
         var overallCost = 0;
-        addedItems.map(aItem => {
+        
+        addedItems.map((aItem, index) => {
           var selectedSupp = suppliers.find(supp => supp.id == aItem.supplier_id);
           var totalCost = aItem.cost && aItem.quantity ? aItem.cost * aItem.quantity : 0;
           overallCost += totalCost;
 
           html += `
-            <tr>
+            <tr data-index="${index}">
               <td>${aItem.sku}</td>
               <td>${aItem.name}</td>
               <td>${selectedSupp.name}</td>
@@ -389,7 +390,8 @@
 
         $('.added-item-qty').on('change', function() {
           var itemId = $(this).data('id');
-          var addedItemIndex = addedItems.findIndex(c => c.id == itemId);
+          var addedItemIndex = $(this).closest('tr').data('index');
+          // var addedItemIndex = addedItems.findIndex(c => c.id == itemId);
           var qty = (addedItems[addedItemIndex].sold_by_weight || addedItems[addedItemIndex].sold_by_length) ? parseFloat($(this).val()) : parseInt($(this).val());
 
           addedItems[addedItemIndex].quantity = qty;
@@ -398,7 +400,8 @@
 
         $('.added-item-cost').change(function() {
           var itemId = $(this).data('id');
-          var addedItemIndex = addedItems.findIndex(c => c.id == itemId);
+          var addedItemIndex = $(this).closest('tr').data('index');
+          // var addedItemIndex = addedItems.findIndex(c => c.id == itemId);
 
           addedItems[addedItemIndex].cost = $(this).val();
           populateItems();
