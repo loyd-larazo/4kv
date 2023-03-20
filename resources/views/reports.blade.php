@@ -45,10 +45,8 @@
 
   <div class="table-responsive">
     <table class="table">
-      <thead id="thead">
-      </thead>
-      <tbody id="tbody">
-      </tbody>
+      <thead id="thead"></thead>
+      <tbody id="tbody"></tbody>
     </table>
   </div>
 
@@ -236,6 +234,7 @@
               $('#printBtnContainer').html('').removeClass('col-auto d-flex align-items-center filter print');
               
               let items = data.data;
+              let grandTotal = data.grandTotal;
               let headerHtml = '<tr>';
               filterData.items.map(key => {
                 let col = columnList[key];
@@ -252,17 +251,23 @@
 
                 let currentColumns = dbCols[currentReportType];
                 let bodyHtml = "";
-                items.map(item => {
+                let footerHtml = "<tr>";
+                
+                items.map((item, index) => {
                   bodyHtml += "<tr>";
                   filterData.items.map(key => {
                     let col = columnList[key];
                     let dbCol = currentColumns[col];
                     let dbColNames = dbCol.split(".");
                     let itemVal = '';
+                    let grandVal = '';
+
                     for (let d in dbColNames) {
                       let dbColName = dbColNames[d];
                       itemVal = itemVal ? itemVal[dbColName] : item[dbColName];
+                      if (grandTotal) grandVal = grandTotal[dbColName];
                     }
+                    
                     if (col.includes('price') || col.includes('cost') || col.includes('amount') || col.includes('discrepancy'))
                       itemVal = `P${parseFloat(itemVal).toFixed(2)}`;
                     if (col == 'date')
@@ -272,12 +277,22 @@
                     if (itemVal == null)
                       itemVal = '';
                     
-                    bodyHtml += `
-                      <td class="mobile-col-sm">${itemVal}</td>
-                    `;
+                    bodyHtml += `<td class="mobile-col-sm">${itemVal}</td>`;
+
+                    if (grandTotal && index == 0) {
+                      let grandTotalVal = '';
+                      if (grandVal || grandVal == 0) grandTotalVal = `P${parseFloat(grandVal).toFixed(2)}`;
+                      footerHtml += `<td class="mobile-col-sm"><strong>${grandTotalVal}</strong></td>`;
+                    }
                   });
                   bodyHtml += "</tr>";
                 });
+
+                if (grandTotal) {
+                  footerHtml += "</tr>";
+                  bodyHtml += footerHtml;
+                } else footerHtml = '';
+
                 $("#tbody").html(bodyHtml);
               }
             }

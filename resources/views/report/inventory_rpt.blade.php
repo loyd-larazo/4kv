@@ -45,6 +45,21 @@
               @if (in_array(9, $cols))<td>{{ $item->stock }}</td>@endif
             </tr>
           @endforeach
+          <?php
+            $grandCost = number_format((float)$grandTotal['cost'], 2, '.', ',');
+            $grandPrice = number_format((float)$grandTotal['price'], 2, '.', ',');
+          ?>
+          <tr>
+            @if (in_array(1, $cols))<td></td>@endif
+            @if (in_array(2, $cols))<td></td>@endif
+            @if (in_array(3, $cols))<td>P{{ $grandCost }}</td>@endif
+            @if (in_array(4, $cols))<td>P{{ $grandPrice }}</td>@endif
+            @if (in_array(5, $cols))<td></td>@endif
+            @if (in_array(6, $cols))<td></td>@endif
+            @if (in_array(7, $cols))<td></td>@endif
+            @if (in_array(8, $cols))<td></td>@endif
+            @if (in_array(9, $cols))<td></td>@endif
+          </tr>
         </tbody>
       </table>
     </div>

@@ -134,12 +134,16 @@ class ReportController extends Controller
     $eDate = $request->get('eDate');
 
     $data = $this->getData($rptType, $sDate, $eDate);
-    return response()->json(['data' => $data]);
+    return response()->json([
+      'data' => $data['data'],
+      'grandTotal' => $data['grandTotal']
+    ]);
   }
 
   private function getData($rptType, $sDate, $eDate) {
     $sDate = Carbon::parse($sDate)->startOfDay()->subHours(8)->format('Y-m-d H:i:s');
     $eDate = Carbon::parse($eDate)->endOfDay()->subHours(8)->format('Y-m-d H:i:s');
+    $grandTotal = null;
 
     switch($rptType) {
       case('topSelling'):
@@ -161,6 +165,10 @@ class ReportController extends Controller
                         ->groupBy('item_id')
                         ->orderBy('sold', 'DESC')
                         ->get();
+        if (count($data)) $grandTotal = [
+          'total_price' => $data->sum('total_price'),
+          'price' => $data->sum('item.price')
+        ];
         break;
       case('inventory'):
         $data = Item::with('category')
@@ -168,6 +176,7 @@ class ReportController extends Controller
                     ->whereBetween('created_at', [$sDate, $eDate])
                     ->orderBy('name', 'ASC')
                     ->get();
+        if (count($data)) $grandTotal = ['cost' => $data->sum('cost'), 'price' => $data->sum('price')];
         break;
       case('dailySales'):
         $data = DailySale::with(['openingUser', 'closingUser'])
@@ -175,6 +184,12 @@ class ReportController extends Controller
                         ->whereNotNull('closing_amount')
                         ->orderBy('created_at', 'desc')
                         ->get();
+        if (count($data)) $grandTotal = [
+          'sales_amount' => $data->sum('sales_amount'),
+          'opening_amount' => $data->sum('opening_amount'),
+          'closing_amount' => $data->sum('closing_amount'),
+          'difference_amount' => $data->sum('difference_amount')
+        ];
         break;
       case('damageItems'):
         $data = DamageItem::select( 'item_id', 
@@ -185,6 +200,10 @@ class ReportController extends Controller
                           ->groupBy('item_id')
                           ->orderBy('quantity', 'DESC')
                           ->get();
+        if (count($data)) $grandTotal = [
+          'total_price' => $data->sum('total_price'),
+          'price' => $data->sum('item.price')
+        ];
         break;
       case('lowStock'):
         $data = Item::where('stock', '<=', 15)
@@ -194,8 +213,9 @@ class ReportController extends Controller
         break;
       default:
         $data = [];
+        $grandTotal = null;
     }
-    return $data;
+    return ['data' => $data, 'grandTotal' => $grandTotal];
   }
 
   public function print(Request $request, $type) {
@@ -206,7 +226,11 @@ class ReportController extends Controller
     $cols = array();
 
     $data = $this->getData($type, $sDate, $eDate);
-    $params = [ 'data' => $data, 'cols' => $indexes ];
+    $params = [
+      'data' => $data['data'],
+      'cols' => $indexes,
+      'grandTotal' => $data['grandTotal']
+    ];
 
     switch($type) {
       case('topSelling'):
@@ -231,7 +255,5 @@ class ReportController extends Controller
         return redirect()->back()->with('error', 'No report type selected.'); 
         break;
     }
-
-    
   }
 }
