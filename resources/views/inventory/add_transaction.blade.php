@@ -129,12 +129,12 @@
 
             <div class="mb-3">
               <label class="form-label">Cost</label>
-              <input type="number" class="form-control" name="cost" required autocomplete="off">
+              <input type="number" class="form-control" name="cost" required autocomplete="off" min="0">
             </div>
 
 						<div class="mb-3">
               <label class="form-label">Price</label>
-              <input type="number" class="form-control" name="price" required autocomplete="off">
+              <input type="number" class="form-control" name="price" required autocomplete="off" min="0">
             </div>
 
 						<div class="mb-3">
@@ -531,6 +531,21 @@
       $('#addNewSupplier').click(function() {
         $('#type').html("Add");
       });
+
+      $('input[name="cost"]').change(function() {
+        setToMin($(this));
+      });
+
+      $('input[name="price"]').change(function() {
+        setToMin($(this));
+      });
+
+      function setToMin(selector) {
+        let val = selector.val();
+        let minVal = selector.attr('min');
+
+        if (val < minVal) selector.val(minVal);
+      };
     });
   </script>
 @endsection
