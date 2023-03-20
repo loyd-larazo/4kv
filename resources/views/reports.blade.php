@@ -14,6 +14,8 @@
           <option {{(isset($type) && $type == "dailySales") ? 'selected' : ''}} value="dailySales">Daily Sales</option>
           <option {{(isset($type) && $type == "damageItems") ? 'selected' : ''}} value="damageItems">Damage Items</option>
           <option {{(isset($type) && $type == "lowStock") ? 'selected' : ''}} value="lowStock">Low Stock Items</option>
+          <option {{(isset($type) && $type == "transaction") ? 'selected' : ''}} value="transaction">Transaction List</option>
+          <option {{(isset($type) && $type == "sales") ? 'selected' : ''}} value="sales">Sales List</option>
         </select>
       </div>
       <div class="col-auto">

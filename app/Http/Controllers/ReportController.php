@@ -12,6 +12,7 @@ use App\Models\Sale;
 use App\Models\SaleItem;
 use App\Models\DamageItem;
 use App\Models\DailySale;
+use App\Models\Transaction;
 
 use Carbon\Carbon;
 
@@ -67,6 +68,23 @@ class ReportController extends Controller
         1 => 'sku',
         2 => 'item',
         3 => 'stock'
+      ],
+      'transaction' => [
+        1 => 'transaction_code',
+        2 => 'total_quantity',
+        3 => 'total_cost',
+        4 => 'stock_man',
+        5 => 'remarks',
+        6 => 'date'
+      ],
+      'sales' => [
+        1 => 'reference',
+        2 => 'cashier_firstname',
+        3 => 'cashier_lastname',
+        4 => 'total_quantity',
+        5 => 'total_discount',
+        6 => 'total_amount',
+        7 => 'date'
       ]
     ];
 
@@ -117,6 +135,23 @@ class ReportController extends Controller
         'sku' => 'sku',
         'item' => 'name',
         'stock' => 'stock',
+      ],
+      'transaction' => [
+        'transaction_code' => 'transaction_code',
+        'total_quantity' => 'total_quantity',
+        'total_cost' => 'total_amount',
+        'stock_man' => 'stock_man',
+        'remarks' => 'remarks',
+        'date' => 'created_at'
+      ],
+      'sales' => [
+        'reference' => 'reference',
+        'cashier_firstname' => 'user.firstname',
+        'cashier_lastname' => 'user.lastname',
+        'total_quantity' => 'total_quantity',
+        'total_discount' => 'total_discount',
+        'total_amount' => 'total_amount',
+        'date' => 'created_at'
       ]
     ];
   }
@@ -211,6 +246,25 @@ class ReportController extends Controller
                     ->orderBy('stock', 'DESC')
                     ->get();
         break;
+      case('transaction'):
+        $data = Transaction::whereBetween('created_at', [$sDate, $eDate])
+                          ->orderBy('created_at', 'DESC')
+                          ->get();
+        if (count($data)) $grandTotal = [
+          'total_amount' => $data->sum('total_amount')
+        ];
+        break;
+      case('sales'):
+        $data = Sale::where('type', 'sales')
+                    ->with('user')
+                    ->whereBetween('created_at', [$sDate, $eDate])
+                    ->orderBy('created_at', 'DESC')
+                    ->get();
+        if (count($data)) $grandTotal = [
+          'total_discount' => $data->sum('total_discount'),
+          'total_amount' => $data->sum('total_amount')
+        ];
+        break;
       default:
         $data = [];
         $grandTotal = null;
@@ -250,6 +304,12 @@ class ReportController extends Controller
         break;
       case('lowStock'):
         return view('report.low_stock_rpt', $params);
+        break;
+      case('transaction'):
+        return view('report.transaction_rpt', $params);
+        break;
+      case('sales'):
+        return view('report.sales_rpt', $params);
         break;
       default:
         return redirect()->back()->with('error', 'No report type selected.'); 
