@@ -219,6 +219,7 @@
         $('.qty').change(function() {
           if ($(this).val() > parseFloat($(this).attr('max'))) {
             $(this).val($(this).attr('max'));
+            alert("No enough stocks.");
           }
           getItemsQty();
         });

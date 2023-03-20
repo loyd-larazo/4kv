@@ -338,7 +338,13 @@
             var cartIndex = cart.findIndex(c => c.id == itemId);
             if (cartIndex >= 0) {
               item = cart[cartIndex];
-              item.quantity = (item.quantity + 1) > item.stock ? item.stock : (item.quantity + 1);
+              item.quantity = (item.quantity + 1);
+              
+              if ((item.quantity + 1) > item.stock) {
+                item.quantity = item.stock;
+                alert("No enough stocks.");
+              }
+              // item.quantity = (item.quantity + 1) > item.stock ? item.stock : (item.quantity + 1);
               cart[cartIndex] = item;
             } else {
               item.quantity = 1;
@@ -403,6 +409,7 @@
 
           if (max < qty) {
             qty = max;
+            alert("No enough stocks.");
           }
 
           cart[cartItemIndex].quantity = qty;
