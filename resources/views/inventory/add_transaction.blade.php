@@ -526,6 +526,11 @@
             initializeAutocomplete();
             $('#itemsModal').modal('hide');
             $('#itemSuccess').show();
+            
+            var productItemsLastIndex = productItems.length-1;
+            searchItems = [productItems[productItemsLastIndex]];
+            $('#category').val('');
+            updateSearchItems();
             // setTimeout(() => { $('#itemSuccess').hide(); } , 2000);
           }
         });
