@@ -138,6 +138,8 @@
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
           </div>
           <div class="modal-body">
+            <div id="modalError" class="alert alert-danger text-center" role="alert"></div>
+
             <div class="mb-3" id="changePasswordParent">
               <input type="checkbox" id="changePassword" name="change_password" autocomplete="off"/>
               <label class="form-label" for="changePassword">Change Password</label>
@@ -201,7 +203,7 @@
   
               <div class="mb-3">
                 <label class="form-label">Contact Number</label>
-                <input type="text" class="form-control required" name="contact_number" required autocomplete="off">
+                <input type="text" class="form-control required mobile-number" id="mobile" maxlength="11" name="contact_number" required autocomplete="off">
               </div>
   
               <div class="mb-3">
@@ -225,7 +227,7 @@
             </div>
           </div>
           <div class="modal-footer">
-            <button type="submit" class="btn btn-outline-success">Save</button>
+            <button type="submit" class="btn btn-outline-success" id="saveUser">Save</button>
           </div>
         </form>
       </div>
@@ -265,11 +267,14 @@
           </div>
           <div class="modal-body">
             <div class="mb-3">
-              <input type="email" class="form-control required" name="email" required autocomplete="off">
+              <input type="email" class="form-control required" name="email" required autocomplete="off" placeholder="Email">
+            </div>
+            <div id="confirmWrapper" class="mb-3">
+              <input type="email" class="form-control required" name="confirmEmail" required autocomplete="off" placeholder="Confirm Email">
             </div>
           </div>
           <div class="modal-footer">
-            <button type="submit" class="btn btn-outline-primary">Update</button>
+            <button type="submit" class="btn btn-outline-primary" id="updateEmail">Update</button>
           </div>
         </form>
       </div>
@@ -287,13 +292,55 @@
         $("#searchForm").submit();
       });
 
+      $('input[name="email"]').on('change keyup', function() {
+        $('#confirmWrapper').show();
+      });
+
+      $('input[name="confirmEmail"]').on('change keyup paste', function() {
+        if ($('input[name="email"]').val() === $('input[name="confirmEmail"]').val())
+          $('#updateEmail').removeAttr('disabled');
+        else $('#updateEmail').attr('disabled', true);
+      })
+
+      $('input[type="password"]').keyup(function(event) {
+        if (event.code === 'Space') {
+          event.preventDefault();
+          const inputValue = $(this).val();
+          const newValue = inputValue.replace(/\s/g, '');
+          $(this).val(newValue);
+        }
+      });
 
       $.ajaxSetup({
         headers: { 'X-CSRF-TOKEN': $('input[name="_token"]').val() }
       });
 
+      $('input[name="username"]').change(function() {
+        $('#modalError').hide();
+        $('#saveUser').removeAttr('disabled');
+        
+        let usernameVal = $(this).val();
+        let idVal = $('input[name="id"]').val() || undefined;
+
+        $.ajax({
+          type: 'GET',
+          dataType: 'json',
+          url: `/validate/user?username=${usernameVal}&id=${idVal}`,
+          success: (data) => {
+            if (data.error) {
+              $('#saveUser').attr('disabled', true);
+              $('#modalError').html(data.error).show();
+              document.getElementById("userModal").scrollTop = 0;
+            }
+          }
+        });
+      });
+
       $('#editEmail').click(function() {
+        $('#confirmWrapper').hide();
+        $('#updateEmail').attr('disabled', true);
         $('input[name="email"]').val("");
+        $('input[name="confirmEmail"]').val("");
 
         $.ajax({
           type: 'GET',
@@ -316,6 +363,7 @@
       });
 
       $('#addUser').click(function() {
+        $('#modalError').hide();
         $('#type').html("Add");
         resetForm(true);
         $('#changePasswordParent').addClass("d-none");
@@ -323,6 +371,7 @@
       });
 
       $('.edit-user').click(function() {
+        $('#modalError').hide();
         $('#type').html("Edit");
         resetForm(true);
         $('#changePasswordParent').removeClass("d-none");
@@ -352,6 +401,45 @@
         var page = $(this).val();
         location.href = `/users?page=${page}`;
       });
+
+      secureMobile();
+      $('#mobile').change(function() {
+        $('#modalError').html("").hide();
+        $('#saveUser').removeAttr('disabled');
+
+        let isValid = validateMobile($(this).val());
+        if (!isValid) {
+          $('#saveUser').attr('disabled', true);
+          $('#modalError').html("Invalid contact number.").show();
+          document.getElementById("userModal").scrollTop = 0;
+        }
+      });
+
+      function validateMobile(num) {
+        if (num[0] != '0' || num[1] != '9') {
+          return false;
+        }
+
+        if (num.length != 11) {
+          return false;
+        }
+
+        return true;
+      }
+
+      function secureMobile() {
+        $(".mobile-number").inputFilter(function(value) {
+          return /^\d*$/.test(value);    // Allow digits only, using a RegExp
+        },"Only digits allowed");
+
+        $('.mobile-number').keypress(function (e) {
+          if($(e.target).prop('value').length >= 11) {
+            if(e.keyCode!=32) {
+              return false
+            }
+          } 
+        });
+      }
     });
 
     $('#userForm').submit(function(event) {
@@ -399,5 +487,32 @@
         $('#updatePassword .required').removeAttr('required');
       }
     }
+
+    (function($) {
+      $.fn.inputFilter = function(callback, errMsg) {
+        return this.on("input keydown keyup mousedown mouseup select contextmenu drop focusout", function(e) {
+          if (callback(this.value)) {
+            // Accepted value
+            if (["keydown","mousedown","focusout"].indexOf(e.type) >= 0){
+              $(this).removeClass("input-error");
+              this.setCustomValidity("");
+            }
+            this.oldValue = this.value;
+            this.oldSelectionStart = this.selectionStart;
+            this.oldSelectionEnd = this.selectionEnd;
+          } else if (this.hasOwnProperty("oldValue")) {
+            // Rejected value - restore the previous one
+            $(this).addClass("input-error");
+            this.setCustomValidity(errMsg);
+            this.reportValidity();
+            this.value = this.oldValue;
+            this.setSelectionRange(this.oldSelectionStart, this.oldSelectionEnd);
+          } else {
+            // Rejected value - nothing to restore
+            this.value = "";
+          }
+        });
+      };
+    }(jQuery));
   </script>
 @endsection

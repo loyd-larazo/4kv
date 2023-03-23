@@ -35,7 +35,7 @@ class POSController extends Controller
                 ->where('status', 1)
                 ->where('stock', '>', 0)
                 ->get();
-    $categories = Category::orderBy('name', 'asc')->get();
+    $categories = Category::where('status', 1)->orderBy('name', 'asc')->get();
 
     return view('pos.cashier', [
       'categories' => json_encode($categories),

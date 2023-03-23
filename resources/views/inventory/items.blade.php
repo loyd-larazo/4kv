@@ -152,12 +152,12 @@
 
             <div class="mb-3">
               <label class="form-label">Cost</label>
-              <input type="number" class="form-control" name="cost" required autocomplete="off">
+              <input type="number" class="form-control" name="cost" required autocomplete="off" min="0">
             </div>
 
 						<div class="mb-3">
               <label class="form-label">Price</label>
-              <input type="number" class="form-control" name="price" required autocomplete="off">
+              <input type="number" class="form-control" name="price" required autocomplete="off" min="0">
             </div>
 
 						<div class="mb-3">
@@ -189,7 +189,7 @@
 
 						<div class="mb-3" id="stockField">
               <label class="form-label">Stock</label>
-              <input type="number" class="form-control" name="stock" min="1" required autocomplete="off">
+              <input type="number" class="form-control" name="stock" autocomplete="off">
             </div>
 
 						<div class="mb-3">
@@ -249,7 +249,7 @@
       $('#addItem').click(function() {
         $('#type').html("Add");
         $('#skuField').hide();
-        $('#stockField').show();
+        $('#stockField').hide();
         $('#modalError').html("").addClass('d-none');
 
         $('input[name="id"]').val("");
@@ -260,7 +260,7 @@
         $('textarea[name="description"]').val("");
         $('select[name="sold_by"]').val("");
         $('select[name="category"]').val("");
-        $('input[name="stock"]').val("");
+        $('input[name="stock"]').val(0);
         $('select[name="status"]').val("");
       });
 
@@ -338,6 +338,21 @@
         $('#barcodeModal').modal('hide');
         window.open(`/item/${sku}/barcode?noPrint=${noBarcode}`);
       });
+
+      $('input[name="cost"]').change(function() {
+        setToMin($(this));
+      });
+
+      $('input[name="price"]').change(function() {
+        setToMin($(this));
+      });
+
+      function setToMin(selector) {
+        let val = selector.val();
+        let minVal = selector.attr('min');
+
+        if (val < minVal) selector.val(minVal);
+      };
     });
   </script>
 @endsection

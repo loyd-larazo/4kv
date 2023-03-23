@@ -14,6 +14,8 @@
           <option {{(isset($type) && $type == "dailySales") ? 'selected' : ''}} value="dailySales">Daily Sales</option>
           <option {{(isset($type) && $type == "damageItems") ? 'selected' : ''}} value="damageItems">Damage Items</option>
           <option {{(isset($type) && $type == "lowStock") ? 'selected' : ''}} value="lowStock">Low Stock Items</option>
+          <option {{(isset($type) && $type == "transaction") ? 'selected' : ''}} value="transaction">Transaction List</option>
+          <option {{(isset($type) && $type == "sales") ? 'selected' : ''}} value="sales">Sales List</option>
         </select>
       </div>
       <div class="col-auto">
@@ -45,10 +47,8 @@
 
   <div class="table-responsive">
     <table class="table">
-      <thead id="thead">
-      </thead>
-      <tbody id="tbody">
-      </tbody>
+      <thead id="thead"></thead>
+      <tbody id="tbody"></tbody>
     </table>
   </div>
 
@@ -68,6 +68,10 @@
             </div>
             <div>
               <label class="form-label">Check Columns to Include: </label>
+              <li id="includeAll" class="form-check">
+                <input id="itemAll" type="checkbox" class="form-check-input">
+                <label class="form-check-label text-capitalize" for="itemAll">Include All</label>
+              </li>
               <ul id="columnOptionsContainer" class="list-unstyled"></ul>
             </div>
           </div>
@@ -95,6 +99,7 @@
         $("#tbody").html('');
         $('.print').hide();
         $('#printBtnContainer').html('').removeClass('col-auto d-flex align-items-center filter print');
+        $('#itemAll').prop('checked', false);
       });
 
       // Populate data on modal
@@ -144,12 +149,26 @@
           let value = columnList[key].replace(/_/g, " ");
           const listItem = $(`<li class="form-check">`);
           listItem.html(`
-            <input id="item${key}" type="checkbox" data-index="${key}" class="form-check-input">
+            <input id="item${key}" type="checkbox" data-index="${key}" class="form-check-input column-option">
             <label class="form-check-label text-capitalize" for="item${key}">${value}</label>
           `);
           columnContainer.append(listItem);
         }
+
+        if (columnList) {
+          $('#includeAll').show();
+
+          $('.column-option').change(function() {
+            let uncheckedExist = $('.column-option:not(:checked)').length > 0;
+            $('#itemAll').prop('checked', !uncheckedExist);
+          });
+        } else $('#includeAll').hide();
       }
+
+      $('#itemAll').change(function() {
+        let isChecked = $(this).prop('checked');
+        $('.column-option').prop('checked', isChecked);
+      });
 
       // Get filter data from modal
       $('#addFilterBtn').click(function() {
@@ -217,6 +236,7 @@
               $('#printBtnContainer').html('').removeClass('col-auto d-flex align-items-center filter print');
               
               let items = data.data;
+              let grandTotal = data.grandTotal;
               let headerHtml = '<tr>';
               filterData.items.map(key => {
                 let col = columnList[key];
@@ -233,17 +253,23 @@
 
                 let currentColumns = dbCols[currentReportType];
                 let bodyHtml = "";
-                items.map(item => {
+                let footerHtml = "<tr>";
+                
+                items.map((item, index) => {
                   bodyHtml += "<tr>";
                   filterData.items.map(key => {
                     let col = columnList[key];
                     let dbCol = currentColumns[col];
                     let dbColNames = dbCol.split(".");
                     let itemVal = '';
+                    let grandVal = '';
+
                     for (let d in dbColNames) {
                       let dbColName = dbColNames[d];
                       itemVal = itemVal ? itemVal[dbColName] : item[dbColName];
+                      if (grandTotal) grandVal = grandTotal[dbColName];
                     }
+                    
                     if (col.includes('price') || col.includes('cost') || col.includes('amount') || col.includes('discrepancy'))
                       itemVal = `P${parseFloat(itemVal).toFixed(2)}`;
                     if (col == 'date')
@@ -253,12 +279,22 @@
                     if (itemVal == null)
                       itemVal = '';
                     
-                    bodyHtml += `
-                      <td class="mobile-col-sm">${itemVal}</td>
-                    `;
+                    bodyHtml += `<td class="mobile-col-sm">${itemVal}</td>`;
+
+                    if (grandTotal && index == 0) {
+                      let grandTotalVal = '';
+                      if (grandVal || grandVal == 0) grandTotalVal = `P${parseFloat(grandVal).toFixed(2)}`;
+                      footerHtml += `<td class="mobile-col-sm"><strong>${grandTotalVal}</strong></td>`;
+                    }
                   });
                   bodyHtml += "</tr>";
                 });
+
+                if (grandTotal) {
+                  footerHtml += "</tr>";
+                  bodyHtml += footerHtml;
+                } else footerHtml = '';
+
                 $("#tbody").html(bodyHtml);
               }
             }

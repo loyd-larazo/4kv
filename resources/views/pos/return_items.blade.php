@@ -219,6 +219,7 @@
         $('.qty').change(function() {
           if ($(this).val() > parseFloat($(this).attr('max'))) {
             $(this).val($(this).attr('max'));
+            alert("No enough stocks.");
           }
           getItemsQty();
         });
@@ -353,6 +354,15 @@
           (j ? i.substr(0, j) + thouSep : "") +
           i.substr(j).replace(/(\decSep{3})(?=\decSep)/g, "$1" + thouSep) +
           (decPlaces ? decSep + Math.abs(number - i).toFixed(decPlaces).slice(2) : "");
+    }
+
+    $('.page-select').change(function() {
+      search();
+    });
+
+    function search(p, d) {
+      var page = p || $('.page-select').val();
+      location.href = `/return-items?page=${page}`;
     }
   });
 </script>

@@ -197,22 +197,28 @@ class ItemController extends Controller
 		$address = $request->get('address');
 		$status = $request->get('status');
 		
-		$data = [
-			'name' => $name,
-      'contact_person' => $contact_person,
-      'contact_number' => $contact_number,
-      'address' => $address,
-      'status' => $status,
-		];
+		$isValidSupplier = $this->isValidSupplier($name, $id);
 
-		if (isset($id)) {
-			Supplier::where('id', $id)
-						->update($data);
-		} else {
-			Supplier::create($data);
+		if ($isValidSupplier) {
+			$data = [
+				'name' => $name,
+				'contact_person' => $contact_person,
+				'contact_number' => $contact_number,
+				'address' => $address,
+				'status' => $status,
+			];
+	
+			if (isset($id)) {
+				Supplier::where('id', $id)
+							->update($data);
+			} else {
+				Supplier::create($data);
+			}
+	
+			return redirect()->back()->with('success', 'Supplier has been saved!');
 		}
 
-		return redirect()->back()->with('success', 'Supplier has been saved!'); 
+		return redirect()->back()->with('error', 'Supplier is already exist.');
 	}
 
 	public function validateProductName(Request $request, $categoryId) {
@@ -333,5 +339,25 @@ class ItemController extends Controller
 		return view('damage_items', [
 			'damages' => $damages
 		]);
+	}
+
+	public function validateSupplier(Request $request) {
+		$id = $request->get('id');
+		$name = $request->get('name');
+
+		$isValidSupplier = $this->isValidSupplier($name, $id);
+		
+		if (!$isValidSupplier)
+			return response()->json(['error' => 'Supplier is already exist.']);
+
+		return response()->json(['data' => true]);
+	}
+
+	private function isValidSupplier($name, $id) {
+		$supplierExist = Supplier::where(['status' => 1, 'name' => $name])->first();
+
+		if (isset($id) && $supplierExist && $id == $supplierExist->id) return true;
+		if ($supplierExist) return false;
+		return true;
 	}
 }

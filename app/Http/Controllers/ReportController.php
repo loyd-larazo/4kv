@@ -12,6 +12,7 @@ use App\Models\Sale;
 use App\Models\SaleItem;
 use App\Models\DamageItem;
 use App\Models\DailySale;
+use App\Models\Transaction;
 
 use Carbon\Carbon;
 
@@ -67,6 +68,23 @@ class ReportController extends Controller
         1 => 'sku',
         2 => 'item',
         3 => 'stock'
+      ],
+      'transaction' => [
+        1 => 'transaction_code',
+        2 => 'total_quantity',
+        3 => 'total_cost',
+        4 => 'stock_man',
+        5 => 'remarks',
+        6 => 'date'
+      ],
+      'sales' => [
+        1 => 'reference',
+        2 => 'cashier_firstname',
+        3 => 'cashier_lastname',
+        4 => 'total_quantity',
+        5 => 'total_discount',
+        6 => 'total_amount',
+        7 => 'date'
       ]
     ];
 
@@ -117,6 +135,23 @@ class ReportController extends Controller
         'sku' => 'sku',
         'item' => 'name',
         'stock' => 'stock',
+      ],
+      'transaction' => [
+        'transaction_code' => 'transaction_code',
+        'total_quantity' => 'total_quantity',
+        'total_cost' => 'total_amount',
+        'stock_man' => 'stock_man',
+        'remarks' => 'remarks',
+        'date' => 'created_at'
+      ],
+      'sales' => [
+        'reference' => 'reference',
+        'cashier_firstname' => 'user.firstname',
+        'cashier_lastname' => 'user.lastname',
+        'total_quantity' => 'total_quantity',
+        'total_discount' => 'total_discount',
+        'total_amount' => 'total_amount',
+        'date' => 'created_at'
       ]
     ];
   }
@@ -134,10 +169,17 @@ class ReportController extends Controller
     $eDate = $request->get('eDate');
 
     $data = $this->getData($rptType, $sDate, $eDate);
-    return response()->json(['data' => $data]);
+    return response()->json([
+      'data' => $data['data'],
+      'grandTotal' => $data['grandTotal']
+    ]);
   }
 
   private function getData($rptType, $sDate, $eDate) {
+    $sDate = Carbon::parse($sDate)->startOfDay()->subHours(8)->format('Y-m-d H:i:s');
+    $eDate = Carbon::parse($eDate)->endOfDay()->subHours(8)->format('Y-m-d H:i:s');
+    $grandTotal = null;
+
     switch($rptType) {
       case('topSelling'):
         $topSelling = 100;
@@ -158,6 +200,10 @@ class ReportController extends Controller
                         ->groupBy('item_id')
                         ->orderBy('sold', 'DESC')
                         ->get();
+        if (count($data)) $grandTotal = [
+          'total_price' => $data->sum('total_price'),
+          'price' => $data->sum('item.price')
+        ];
         break;
       case('inventory'):
         $data = Item::with('category')
@@ -165,6 +211,7 @@ class ReportController extends Controller
                     ->whereBetween('created_at', [$sDate, $eDate])
                     ->orderBy('name', 'ASC')
                     ->get();
+        if (count($data)) $grandTotal = ['cost' => $data->sum('cost'), 'price' => $data->sum('price')];
         break;
       case('dailySales'):
         $data = DailySale::with(['openingUser', 'closingUser'])
@@ -172,6 +219,12 @@ class ReportController extends Controller
                         ->whereNotNull('closing_amount')
                         ->orderBy('created_at', 'desc')
                         ->get();
+        if (count($data)) $grandTotal = [
+          'sales_amount' => $data->sum('sales_amount'),
+          'opening_amount' => $data->sum('opening_amount'),
+          'closing_amount' => $data->sum('closing_amount'),
+          'difference_amount' => $data->sum('difference_amount')
+        ];
         break;
       case('damageItems'):
         $data = DamageItem::select( 'item_id', 
@@ -182,6 +235,10 @@ class ReportController extends Controller
                           ->groupBy('item_id')
                           ->orderBy('quantity', 'DESC')
                           ->get();
+        if (count($data)) $grandTotal = [
+          'total_price' => $data->sum('total_price'),
+          'price' => $data->sum('item.price')
+        ];
         break;
       case('lowStock'):
         $data = Item::where('stock', '<=', 15)
@@ -189,10 +246,30 @@ class ReportController extends Controller
                     ->orderBy('stock', 'DESC')
                     ->get();
         break;
+      case('transaction'):
+        $data = Transaction::whereBetween('created_at', [$sDate, $eDate])
+                          ->orderBy('created_at', 'DESC')
+                          ->get();
+        if (count($data)) $grandTotal = [
+          'total_amount' => $data->sum('total_amount')
+        ];
+        break;
+      case('sales'):
+        $data = Sale::where('type', 'sales')
+                    ->with('user')
+                    ->whereBetween('created_at', [$sDate, $eDate])
+                    ->orderBy('created_at', 'DESC')
+                    ->get();
+        if (count($data)) $grandTotal = [
+          'total_discount' => $data->sum('total_discount'),
+          'total_amount' => $data->sum('total_amount')
+        ];
+        break;
       default:
         $data = [];
+        $grandTotal = null;
     }
-    return $data;
+    return ['data' => $data, 'grandTotal' => $grandTotal];
   }
 
   public function print(Request $request, $type) {
@@ -203,7 +280,11 @@ class ReportController extends Controller
     $cols = array();
 
     $data = $this->getData($type, $sDate, $eDate);
-    $params = [ 'data' => $data, 'cols' => $indexes ];
+    $params = [
+      'data' => $data['data'],
+      'cols' => $indexes,
+      'grandTotal' => $data['grandTotal']
+    ];
 
     switch($type) {
       case('topSelling'):
@@ -224,11 +305,15 @@ class ReportController extends Controller
       case('lowStock'):
         return view('report.low_stock_rpt', $params);
         break;
+      case('transaction'):
+        return view('report.transaction_rpt', $params);
+        break;
+      case('sales'):
+        return view('report.sales_rpt', $params);
+        break;
       default:
         return redirect()->back()->with('error', 'No report type selected.'); 
         break;
     }
-
-    
   }
 }

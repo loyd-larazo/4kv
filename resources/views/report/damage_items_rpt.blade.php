@@ -33,6 +33,17 @@
               @if (in_array(5, $cols))<td>P{{ $totalPrice }}</td>@endif
             </tr>
           @endforeach
+          <?php
+            $grandPrice = number_format((float)$grandTotal['price'], 2, '.', ',');
+            $grandTotalPrice = number_format((float)$grandTotal['total_price'], 2, '.', ',');
+          ?>
+          <tr>
+            @if (in_array(1, $cols))<td></td>@endif
+            @if (in_array(2, $cols))<td></td>@endif
+            @if (in_array(3, $cols))<td>P{{ $grandPrice }}</td>@endif
+            @if (in_array(4, $cols))<td></td>@endif
+            @if (in_array(5, $cols))<td>P{{ $grandTotalPrice }}</td>@endif
+          </tr>
         </tbody>
       </table>
     </div>

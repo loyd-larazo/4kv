@@ -50,9 +50,27 @@
               @if (in_array(7, $cols))<td>P{{ $salesAmount }}</td>@endif
               @if (in_array(8, $cols))<td>P{{ $openingAmount }}</td>@endif
               @if (in_array(9, $cols))<td>P{{ $closingAmount }}</td>@endif
-              @if (in_array(10, $cols))<td>{{ $diff }}</td>@endif
+              @if (in_array(10, $cols))<td>P{{ $diff }}</td>@endif
             </tr>
           @endforeach
+          <?php
+            $grandSalesAmount = number_format((float)$grandTotal['sales_amount'], 2, '.', ',');
+            $grandOpeningAmount = number_format((float)$grandTotal['opening_amount'], 2, '.', ',');
+            $grandClosingAmount = number_format((float)$grandTotal['closing_amount'], 2, '.', ',');
+            $grandDiff = number_format((float)$grandTotal['difference_amount'], 2, '.', ',');
+          ?>
+          <tr>
+            @if (in_array(1, $cols))<td></td>@endif
+            @if (in_array(2, $cols))<td></td>@endif
+            @if (in_array(3, $cols))<td></td>@endif
+            @if (in_array(4, $cols))<td></td>@endif
+            @if (in_array(5, $cols))<td></td>@endif
+            @if (in_array(6, $cols))<td></td>@endif
+            @if (in_array(7, $cols))<td>P{{ $grandSalesAmount }}</td>@endif
+            @if (in_array(8, $cols))<td>P{{ $grandOpeningAmount }}</td>@endif
+            @if (in_array(9, $cols))<td>P{{ $grandClosingAmount }}</td>@endif
+            @if (in_array(10, $cols))<td>P{{ $grandDiff }}</td>@endif
+          </tr>
         </tbody>
       </table>
     </div>

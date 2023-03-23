@@ -45,7 +45,7 @@
               </div>
               <div class="col-12 p-0 mt-2">
                 <select id="category" class="form-control">
-                  <option>Search by Category</option>
+                  <option value="">Search by Category</option>
                   @foreach(json_decode($categories) as $category)
                     <option value="{{$category->id}}">{{ $category->name }}</option>
                   @endforeach
@@ -60,7 +60,9 @@
             <div class="col-12 text-center">
               Can't find item? Click <a href="#" id="addNewItem" data-bs-toggle="modal" data-bs-target="#itemsModal">here</a> to add new item.
             </div>
-            <div id="addSupplierHolder" class="col-12 text-center"></div>
+            <div id="addSupplierHolder" class="col-12 text-center">
+              Can't find supplier? Click <a href="#" id="addNewSupplier" data-bs-toggle="modal" data-bs-target="#supplierModal">here</a> to add new supplier.
+            </div>
             <hr class="mt-4"/>
           </div>
   
@@ -127,12 +129,12 @@
 
             <div class="mb-3">
               <label class="form-label">Cost</label>
-              <input type="number" class="form-control" name="cost" required autocomplete="off">
+              <input type="number" class="form-control" name="cost" required autocomplete="off" min="0">
             </div>
 
 						<div class="mb-3">
               <label class="form-label">Price</label>
-              <input type="number" class="form-control" name="price" required autocomplete="off">
+              <input type="number" class="form-control" name="price" required autocomplete="off" min="0">
             </div>
 
 						<div class="mb-3">
@@ -191,6 +193,8 @@
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
           </div>
           <div class="modal-body">
+            <div id="supplierModalError" class="alert alert-danger text-center" role="alert"></div>
+
             <div class="mb-3">
               <label class="form-label">Name</label>
               <input type="text" class="form-control" name="name" required autocomplete="off">
@@ -203,7 +207,7 @@
 
             <div class="mb-3">
               <label class="form-label">Contact Number</label>
-              <input type="number" class="form-control" name="contact_number" required autocomplete="off">
+              <input type="text" class="form-control mobile-number" id="mobile" maxlength="11" name="contact_number" required autocomplete="off">
             </div>
 
             <div class="mb-3">
@@ -221,7 +225,7 @@
             </div>
           </div>
           <div class="modal-footer">
-            <button type="submit" class="btn btn-outline-success">Save</button>
+            <button type="submit" class="btn btn-outline-success" id="saveSupplier">Save</button>
           </div>
         </form>
       </div>
@@ -270,6 +274,8 @@
           var categoryId = $(this).val();
           searchItems = productItems.filter(item => item.category_id == categoryId);
           updateSearchItems();
+        } else {
+          $('#itemResults').html('');
         }
       });
 
@@ -309,7 +315,7 @@
           });
           $('#itemResults').html(itemHtml);
           $('#sku').val("");
-          $('#category').val($("#category option:first").val());
+          $('#category').val($("#category option:selected").val());
 
           $('.supplier-select').change(function() {
             var searchItemId = $(this).data('id');
@@ -340,27 +346,24 @@
 
             populateItems();
           })
-
-          var addSupplierElem = `Can't find supplier? Click <a href="#" id="addNewSupplier" data-bs-toggle="modal" data-bs-target="#supplierModal">here</a> to add new supplier.`
-          $('#addSupplierHolder').html(addSupplierElem);
         } else {
           $('#itemResults').html(`<tr>
             <td class="text-center" colspan="5">No Item found</td>
           </tr>`);
-          $('#addSupplierHolder').html('');
         }
       }
 
       function populateItems() {
         var html = "";
         var overallCost = 0;
-        addedItems.map(aItem => {
+        
+        addedItems.map((aItem, index) => {
           var selectedSupp = suppliers.find(supp => supp.id == aItem.supplier_id);
           var totalCost = aItem.cost && aItem.quantity ? aItem.cost * aItem.quantity : 0;
           overallCost += totalCost;
 
           html += `
-            <tr>
+            <tr data-index="${index}">
               <td>${aItem.sku}</td>
               <td>${aItem.name}</td>
               <td>${selectedSupp.name}</td>
@@ -389,7 +392,8 @@
 
         $('.added-item-qty').on('change', function() {
           var itemId = $(this).data('id');
-          var addedItemIndex = addedItems.findIndex(c => c.id == itemId);
+          var addedItemIndex = $(this).closest('tr').data('index');
+          // var addedItemIndex = addedItems.findIndex(c => c.id == itemId);
           var qty = (addedItems[addedItemIndex].sold_by_weight || addedItems[addedItemIndex].sold_by_length) ? parseFloat($(this).val()) : parseInt($(this).val());
 
           addedItems[addedItemIndex].quantity = qty;
@@ -398,7 +402,8 @@
 
         $('.added-item-cost').change(function() {
           var itemId = $(this).data('id');
-          var addedItemIndex = addedItems.findIndex(c => c.id == itemId);
+          var addedItemIndex = $(this).closest('tr').data('index');
+          // var addedItemIndex = addedItems.findIndex(c => c.id == itemId);
 
           addedItems[addedItemIndex].cost = $(this).val();
           populateItems();
@@ -523,14 +528,120 @@
             initializeAutocomplete();
             $('#itemsModal').modal('hide');
             $('#itemSuccess').show();
-            setTimeout(() => { $('#itemSuccess').hide(); } , 2000);
+            
+            var productItemsLastIndex = productItems.length-1;
+            searchItems = [productItems[productItemsLastIndex]];
+            $('#category').val('');
+            updateSearchItems();
+            // setTimeout(() => { $('#itemSuccess').hide(); } , 2000);
           }
         });
       }
 
       $('#addNewSupplier').click(function() {
+        $('#supplierModalError').html("").hide();
         $('#type').html("Add");
       });
+
+      $('input[name="cost"]').change(function() {
+        setToMin($(this));
+      });
+
+      $('input[name="price"]').change(function() {
+        setToMin($(this));
+      });
+
+      function setToMin(selector) {
+        let val = selector.val();
+        let minVal = selector.attr('min');
+
+        if (val < minVal) selector.val(minVal);
+      };
+
+      $('input[name="name"]').change(function() {
+        $('#supplierModalError').html("").hide();
+        $('#saveSupplier').removeAttr('disabled');
+
+        let nameVal = $(this).val();
+        let idVal = $('input[name="id"]').val() || undefined;
+
+        $.ajax({
+          type: 'GET',
+          dataType: 'json',
+          url: `/validate/supplier?name=${nameVal}&id=${idVal}`,
+          success: (data) => {
+            if (data.error) {
+              $('#saveSupplier').attr('disabled', true);
+              $('#supplierModalError').html(data.error).show();
+              document.getElementById("supplierModal").scrollTop = 0;
+            }
+          }
+        });
+      });
+
+      secureMobile();
+      $('#mobile').change(function() {
+        $('#supplierModalError').html("").hide();
+        let isValid = validateMobile($(this).val());
+        if (!isValid) {
+          $('#saveSupplier').attr('disabled', true);
+          $('#supplierModalError').html("Invalid contact number.").show();
+          document.getElementById("supplierModal").scrollTop = 0;
+        }
+      });
+
+      function validateMobile(num) {
+        if (num[0] != '0' || num[1] != '9') {
+          return false;
+        }
+
+        if (num.length != 11) {
+          return false;
+        }
+
+        return true;
+      }
+
+      function secureMobile() {
+        $(".mobile-number").inputFilter(function(value) {
+          return /^\d*$/.test(value);    // Allow digits only, using a RegExp
+        },"Only digits allowed");
+
+        $('.mobile-number').keypress(function (e) {
+          if($(e.target).prop('value').length >= 11) {
+            if(e.keyCode!=32) {
+              return false
+            }
+          } 
+        });
+      }
     });
+
+    (function($) {
+      $.fn.inputFilter = function(callback, errMsg) {
+        return this.on("input keydown keyup mousedown mouseup select contextmenu drop focusout", function(e) {
+          if (callback(this.value)) {
+            // Accepted value
+            if (["keydown","mousedown","focusout"].indexOf(e.type) >= 0){
+              $(this).removeClass("input-error");
+              this.setCustomValidity("");
+            }
+            this.oldValue = this.value;
+            this.oldSelectionStart = this.selectionStart;
+            this.oldSelectionEnd = this.selectionEnd;
+          } else if (this.hasOwnProperty("oldValue")) {
+            // Rejected value - restore the previous one
+            $(this).addClass("input-error");
+            this.setCustomValidity(errMsg);
+            this.reportValidity();
+            this.value = this.oldValue;
+            this.setSelectionRange(this.oldSelectionStart, this.oldSelectionEnd);
+          } else {
+            // Rejected value - nothing to restore
+            this.value = "";
+          }
+        });
+      };
+    }(jQuery));
   </script>
 @endsection

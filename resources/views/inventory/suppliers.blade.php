@@ -115,6 +115,8 @@
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
           </div>
           <div class="modal-body">
+            <div id="modalError" class="alert alert-danger text-center" role="alert"></div>
+
             <div class="mb-3">
               <label class="form-label">Name</label>
               <input type="text" class="form-control" name="name" required autocomplete="off">
@@ -127,7 +129,7 @@
 
             <div class="mb-3">
               <label class="form-label">Contact Number</label>
-              <input type="number" class="form-control" name="contact_number" required autocomplete="off">
+              <input type="number" class="form-control mobile-number" id="mobile" maxlength="11" name="contact_number" required autocomplete="off">
             </div>
 
             <div class="mb-3">
@@ -145,7 +147,7 @@
             </div>
           </div>
           <div class="modal-footer">
-            <button type="submit" class="btn btn-outline-success">Save</button>
+            <button type="submit" class="btn btn-outline-success" id="saveSupplier">Save</button>
           </div>
         </form>
       </div>
@@ -158,16 +160,18 @@
         $("#searchForm").submit();
       });
 
-    $("#clear-search").click(function() {
-      $('input[name="search"]').val("");
-      $("#searchForm").submit();
-    });
+      $("#clear-search").click(function() {
+        $('input[name="search"]').val("");
+        $("#searchForm").submit();
+      });
 
       $('#addSupplier').click(function() {
+        $('#modalError').hide();
         $('#type').html("Add");
       });
 
       $('.edit-supplier').click(function() {
+        $('#modalError').hide();
         $('#type').html("Edit");
         var data = $(this).data('json');
 
@@ -184,6 +188,96 @@
         location.href = `/suppliers?page=${page}`;
       });
 
+      $.ajaxSetup({
+        headers: { 'X-CSRF-TOKEN': $('input[name="_token"]').val() }
+      });
+
+      $('input[name="name"]').change(function() {
+        $('#modalError').hide();
+        $('#saveSupplier').removeAttr('disabled');
+
+        let nameVal = $(this).val();
+        let idVal = $('input[name="id"]').val() || undefined;
+
+        $.ajax({
+          type: 'GET',
+          dataType: 'json',
+          url: `/validate/supplier?name=${nameVal}&id=${idVal}`,
+          success: (data) => {
+            if (data.error) {
+              $('#saveSupplier').attr('disabled', true);
+              $('#modalError').html(data.error).show();
+              document.getElementById("supplierModal").scrollTop = 0;
+            }
+          }
+        });
+      });
+
+      secureMobile();
+      $('#mobile').change(function() {
+        $('#modalError').html("").hide();
+        $('#saveSupplier').removeAttr('disabled');
+
+        let isValid = validateMobile($(this).val());
+        if (!isValid) {
+          $('#saveSupplier').attr('disabled', true);
+          $('#modalError').html("Invalid contact number.").show();
+          document.getElementById("supplierModal").scrollTop = 0;
+        }
+      });
+
+      function validateMobile(num) {
+        if (num[0] != '0' || num[1] != '9') {
+          return false;
+        }
+
+        if (num.length != 11) {
+          return false;
+        }
+
+        return true;
+      }
+
+      function secureMobile() {
+        $(".mobile-number").inputFilter(function(value) {
+          return /^\d*$/.test(value);    // Allow digits only, using a RegExp
+        },"Only digits allowed");
+
+        $('.mobile-number').keypress(function (e) {
+          if($(e.target).prop('value').length >= 11) {
+            if(e.keyCode!=32) {
+              return false
+            }
+          } 
+        });
+      }
     });
+
+    (function($) {
+      $.fn.inputFilter = function(callback, errMsg) {
+        return this.on("input keydown keyup mousedown mouseup select contextmenu drop focusout", function(e) {
+          if (callback(this.value)) {
+            // Accepted value
+            if (["keydown","mousedown","focusout"].indexOf(e.type) >= 0){
+              $(this).removeClass("input-error");
+              this.setCustomValidity("");
+            }
+            this.oldValue = this.value;
+            this.oldSelectionStart = this.selectionStart;
+            this.oldSelectionEnd = this.selectionEnd;
+          } else if (this.hasOwnProperty("oldValue")) {
+            // Rejected value - restore the previous one
+            $(this).addClass("input-error");
+            this.setCustomValidity(errMsg);
+            this.reportValidity();
+            this.value = this.oldValue;
+            this.setSelectionRange(this.oldSelectionStart, this.oldSelectionEnd);
+          } else {
+            // Rejected value - nothing to restore
+            this.value = "";
+          }
+        });
+      };
+    }(jQuery));
   </script>
 @endsection

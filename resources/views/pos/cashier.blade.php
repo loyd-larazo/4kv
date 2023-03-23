@@ -34,7 +34,7 @@
             </div>
             <div class="col-12 p-0 mt-2">
               <select id="category" class="form-control">
-                <option>Search by Category</option>
+                <option value="">Search by Category</option>
                 @foreach(json_decode($categories) as $category)
                   <option value="{{$category->id}}">{{ $category->name }}</option>
                 @endforeach
@@ -195,6 +195,8 @@
           var categoryId = $(this).val();
           searchItems = productItems.filter(item => item.category_id == categoryId);
           updateSearchItems();
+        } else {
+          $('#itemResults').html('');
         }
       });
 
@@ -216,11 +218,11 @@
         }
       });
 
-      $('#discount').keyup(function() {
+      $('#discount').on('change paste keyup focus', function() {
         totalPrice = subtotal;
         if ($(this).val() < 0 || $(this).val() > 100) {
           $('#customError').html('Invalid discount!').show();
-          setTimeout(() => { $('#customError').hide(); } , 2000);
+          // setTimeout(() => { $('#customError').hide(); } , 2000);
         } else if ($(this).val() > 0) {
           decimalVal = $(this).val() / 100;
           totalDiscount = subtotal * decimalVal;
@@ -327,7 +329,7 @@
           });
           $('#itemResults').html(itemHtml);
           $('#sku').val("");
-          $('#category').val($("#category option:first").val());
+          $('#category').val($("#category option:selected").val());
 
           
           $('.add-to-cart').click(function() {
@@ -336,7 +338,13 @@
             var cartIndex = cart.findIndex(c => c.id == itemId);
             if (cartIndex >= 0) {
               item = cart[cartIndex];
-              item.quantity = (item.quantity + 1) > item.stock ? item.stock : (item.quantity + 1);
+              item.quantity = (item.quantity + 1);
+              
+              if ((item.quantity + 1) > item.stock) {
+                item.quantity = item.stock;
+                alert("No enough stocks.");
+              }
+              // item.quantity = (item.quantity + 1) > item.stock ? item.stock : (item.quantity + 1);
               cart[cartIndex] = item;
             } else {
               item.quantity = 1;
@@ -401,6 +409,7 @@
 
           if (max < qty) {
             qty = max;
+            alert("No enough stocks.");
           }
 
           cart[cartItemIndex].quantity = qty;

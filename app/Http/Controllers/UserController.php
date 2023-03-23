@@ -57,38 +57,44 @@ class UserController extends Controller
 		$salary = $request->get('salary');
 		$status = $request->get('status');
 
-    $data = [
-			'username' => $username,
-			'type' => $type,
-			'firstname' => $firstname,
-			'lastname' => $lastname,
-			'gender' => $gender,
-			'birthdate' => $birthdate,
-			'contact_number' => $contact_number,
-			'address' => $address,
-			'salary' => $salary,
-			'status' => $status,
-		];
-    
-    if (isset($id)) {
-      $user = User::where('id', $id)->first();
-      if ($user) {
-        if ($changePassword) {
-          $password = $request->get('new_password');
-          $user->password = app('hash')->make($password);
-          $user->save();
-          return redirect()->back()->with('success', 'Password has been saved!'); 
-        } else {
-          User::where('id', $id)
-              ->update($data);
-        }
-      }
-    } else {
-			$data['password'] = app('hash')->make($password);
-      User::create($data);
-    }
-    
-		return redirect()->back()->with('success', 'User has been saved!'); 
+		$isValidUsername = $this->isValidUsername($username, $id);
+
+		if ($isValidUsername) {
+			$data = [
+				'username' => $username,
+				'type' => $type,
+				'firstname' => $firstname,
+				'lastname' => $lastname,
+				'gender' => $gender,
+				'birthdate' => $birthdate,
+				'contact_number' => $contact_number,
+				'address' => $address,
+				'salary' => $salary,
+				'status' => $status,
+			];
+			
+			if (isset($id)) {
+				$user = User::where('id', $id)->first();
+				if ($user) {
+					if ($changePassword) {
+						$password = $request->get('new_password');
+						$user->password = app('hash')->make($password);
+						$user->save();
+						return redirect()->back()->with('success', 'Password has been saved!'); 
+					} else {
+						User::where('id', $id)
+								->update($data);
+					}
+				}
+			} else {
+				$data['password'] = app('hash')->make($password);
+				User::create($data);
+			}
+			
+			return redirect()->back()->with('success', 'User has been saved!'); 
+		}
+
+		return redirect()->back()->with('error', 'Username is already taken.'); 
 	}
 	
 	public function destroy(Request $request, $laborerId) {
@@ -111,4 +117,24 @@ class UserController extends Controller
 		}
     return response()->json(['data' => false]);
   }
+
+	public function validateUsername(Request $request) {
+		$username = $request->get('username');
+		$id = $request->get('id');
+
+		$isValidUsername = $this->isValidUsername($username, $id);
+
+		if (!$isValidUsername) 
+			return response()->json(['error' => 'Username is already taken.']);
+			
+		return response()->json(['data' => true]);
+	}
+
+	private function isValidUsername($username, $id) {
+		$usernameExist = User::where(['status' => 1, 'username' => $username])->first();
+
+		if (isset($id) && $usernameExist && $usernameExist->id == $id) return true;
+		if ($usernameExist) return false;
+		return true;
+	}
 }
