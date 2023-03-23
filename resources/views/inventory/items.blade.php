@@ -298,8 +298,8 @@
         e.preventDefault();
         $('#modalError').html("").addClass('d-none');
 
-        var cost = $('input[name="cost"]').val();
-        var price = $('input[name="price"]').val();
+        var cost = Number($('input[name="cost"]').val());
+        var price = Number($('input[name="price"]').val());
         if (cost > price) {
           $('#modalError').html("The cost shouldn't higher than the price.").removeClass('d-none');
           document.getElementById("itemsModal").scrollTop = 0;
