@@ -302,7 +302,7 @@
         else $('#updateEmail').attr('disabled', true);
       })
 
-      $('input[type="password"]').keyup(function(event) {
+      $('input[type="password"]').keydown(function(event) {
         if (event.code === 'Space') {
           event.preventDefault();
           const inputValue = $(this).val();

@@ -116,8 +116,9 @@
       });
 
       function setDatePicker() {
-        let startDate = new Date();
-        let endDate = new Date();
+        let today = new Date();
+        let startDate = today;
+        let endDate = today;
 
         if (filterData) {
           startDate = new Date(filterData.sDate);
@@ -125,6 +126,7 @@
         }
 
         $('#daterange').daterangepicker({
+          maxDate: today,
           dateFormat: 'mm/dd/yy', 
           startDate, 
           endDate,
