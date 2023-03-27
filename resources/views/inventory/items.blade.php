@@ -152,12 +152,12 @@
 
             <div class="mb-3">
               <label class="form-label">Cost</label>
-              <input type="number" class="form-control" name="cost" required autocomplete="off" min="0">
+              <input type="number" class="form-control" name="cost" required autocomplete="off" min="0" step="0.01">
             </div>
 
 						<div class="mb-3">
               <label class="form-label">Price</label>
-              <input type="number" class="form-control" name="price" required autocomplete="off" min="0">
+              <input type="number" class="form-control" name="price" required autocomplete="off" min="0" step="0.01">
             </div>
 
 						<div class="mb-3">
@@ -348,8 +348,8 @@
       });
 
       function setToMin(selector) {
-        let val = selector.val();
-        let minVal = selector.attr('min');
+        let val = Number(selector.val());
+        let minVal = Number(selector.attr('min'));
 
         if (val < minVal) selector.val(minVal);
       };
