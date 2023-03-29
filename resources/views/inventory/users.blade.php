@@ -356,7 +356,13 @@
 
       const today = new Date();
       const minYear = (today.getFullYear()).toString() - 100;
-      $('input[name="birthdate"]').attr("min", minYear+"-01-01");
+      const maxYear = today.getFullYear();
+      const maxMonth = `${today.getMonth() + 1}`.padStart(2, '0');
+      const maxDay = `${today.getDate()}`.padStart(2, '0');
+      
+      $('input[name="birthdate"]')
+        .attr("min", minYear+"-01-01")
+        .attr("max", [maxYear, maxMonth, maxDay].join('-'));
 
       $("#changePassword").change(function() {
         resetForm();
