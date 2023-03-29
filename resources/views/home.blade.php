@@ -193,6 +193,7 @@
         }
 
         if (sales) {
+          sales.map(sale => sale.y = parseFloat(sale.y));
           var options = {
             animationEnabled: true,
             title: {
