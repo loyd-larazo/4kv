@@ -15,6 +15,8 @@ use Carbon\Carbon;
 use DateTime;
 use DateTimeZone;
 
+use DB, Log;
+
 
 class POSController extends Controller
 {
@@ -88,26 +90,26 @@ class POSController extends Controller
     Paginator::currentPageResolver(function() use ($page) {
       return $page;
     });
-
+    DB::enableQueryLog();
     $sales = Sale::where('type', 'sales')
                   ->where(function($query) use ($date, $search) {
                     $query->when($date, function($query) use ($date) {
                       $query->whereDate('created_at', $date);
                     })
                     ->when($search, function($query) use ($search) {
-                      $query->where('reference', $search);
-                    })
-                    ->orWhereHas('items', function($query) use ($search) {
-                      $query->whereHas('item', function($query) use ($search) {
-                        if ($search) {
-                          $query->where('name', 'like', "%$search%");
-                        }
-                      });
+                      $query->where('reference', $search)
+                            ->orWhereHas('items', function($query) use ($search) {
+                              $query->whereHas('item', function($query) use ($search) {
+                                if ($search) {
+                                  $query->where('name', 'like', "%$search%");
+                                }
+                              });
+                            });
                     });
                   })
                   ->with('items.item', 'user')
                   ->orderBy('created_at', 'desc')->paginate(20);
-
+    Log::info(DB::getQueryLog());
     return view('pos.sales', [
       'sales' => $sales,
       'date' => $date,
