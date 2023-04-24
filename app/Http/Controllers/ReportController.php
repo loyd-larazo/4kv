@@ -13,6 +13,8 @@ use App\Models\SaleItem;
 use App\Models\DamageItem;
 use App\Models\DailySale;
 use App\Models\Transaction;
+use App\Models\ReturnTransaction;
+use App\Models\DiscardItem;
 
 use Carbon\Carbon;
 
@@ -85,6 +87,26 @@ class ReportController extends Controller
         5 => 'total_discount',
         6 => 'total_amount',
         7 => 'date'
+      ],
+      'discard' => [
+        1 => 'sku',
+        2 => 'item',
+        3 => 'discarded_by_firstname',
+        4 => 'discarded_by_lastname',
+        5 => 'supplier',
+        6 => 'amount',
+        7 => 'quantity',
+        8 => 'total_amount',
+        9 => 'date'
+      ],
+      'return' => [
+        1 => 'transaction_code',
+        2 => 'returned_by_firstname',
+        3 => 'returned_by_lastname',
+        4 => 'total_quantity',
+        5 => 'total_amount',
+        6 => 'status',
+        7 => 'date'
       ]
     ];
 
@@ -152,6 +174,26 @@ class ReportController extends Controller
         'total_discount' => 'total_discount',
         'total_amount' => 'total_amount',
         'date' => 'created_at'
+      ],
+      'discard' => [
+        'sku' => 'item.sku',
+        'item' => 'item.name',
+        'discarded_by_firstname' => 'user.firstname',
+        'discarded_by_lastname' => 'user.lastname',
+        'supplier' => 'supplier.name',
+        'amount' => 'amount',
+        'quantity' => 'quantity',
+        'total_amount' => 'total_amount',
+        'date' => 'created_at'
+      ],
+      'return' => [
+        'transaction_code' => 'transaction.transaction_code',
+        'returned_by_firstname' => 'user.firstname',
+        'returned_by_lastname' => 'user.lastname',
+        'total_quantity' => 'quantity',
+        'total_amount' => 'total_amount',
+        'status' => 'status',
+        'date' => 'created_at',
       ]
     ];
   }
@@ -265,6 +307,25 @@ class ReportController extends Controller
           'total_amount' => $data->sum('total_amount')
         ];
         break;
+      case('discard'):
+        $data = DiscardItem::with(['user', 'item', 'supplier'])
+                          ->whereBetween('created_at', [$sDate, $eDate])
+                          ->orderBy('created_at', 'DESC')
+                          ->get();
+        if (count($data)) $grandTotal = [
+          'total_amount' => $data->sum('total_amount')
+        ];
+        break;
+      case('return'):
+        $data = ReturnTransaction::with(['user', 'transaction'])
+                                ->whereBetween('created_at', [$sDate, $eDate])
+                                ->orderBy('status', 'ASC')
+                                ->orderBy('created_at', 'DESC')
+                                ->get();
+        if (count($data)) $grandTotal = [
+          'total_amount' => $data->sum('total_amount')
+        ];
+        break;
       default:
         $data = [];
         $grandTotal = null;
@@ -310,6 +371,12 @@ class ReportController extends Controller
         break;
       case('sales'):
         return view('report.sales_rpt', $params);
+        break;
+      case('discard'):
+        return view('report.discard_rpt', $params);
+        break;
+      case('return'):
+        return view('report.return_rpt', $params);
         break;
       default:
         return redirect()->back()->with('error', 'No report type selected.'); 

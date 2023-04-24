@@ -102,6 +102,16 @@
                       <i class="fa-solid fa-ban me-3"></i><span>Damage Items</span>
                     </a>
                   </li>
+                  <li>
+                    <a href="/discard-items" class="dropdown-item {{ in_array(request()->route()->getName(), ['discardItems'])  ? 'text-primary' : '' }}">
+                      <i class="fa-solid fa-trash me-3"></i><span>Discard Items</span>
+                    </a>
+                  </li>
+                  <li>
+                    <a href="/return-transactions" class="dropdown-item {{ in_array(request()->route()->getName(), ['returnTransactions'])  ? 'text-primary' : '' }}">
+                      <i class="fa-solid fa-undo me-3"></i><span>Return Purchases</span>
+                    </a>
+                  </li>
                 @endif
               </ul>
             </li>

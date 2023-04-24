@@ -12,6 +12,7 @@ use App\Models\Sale;
 use App\Models\SaleItem;
 use App\Models\DamageItem;
 use App\Models\DailySale;
+use App\Models\DiscardItem;
 use Carbon\Carbon;
 
 use DNS1D;
@@ -359,5 +360,58 @@ class ItemController extends Controller
 		if (isset($id) && $supplierExist && $id == $supplierExist->id) return true;
 		if ($supplierExist) return false;
 		return true;
+	}
+
+	public function discardItems(Request $request) {
+		$page = $request->get('page') ?? 1;
+		$search = $request->get('search');
+
+    Paginator::currentPageResolver(function() use ($page) {
+      return $page;
+    });
+
+		$items = Item::where('status', 1)->where('stock', '>', 0)->get();
+		$suppliers = Supplier::where('status', 1)->get();
+
+    $discardItems = DiscardItem::with(['user', 'item', 'supplier'])
+															->when($search, function ($query) use ($search) {
+																$query->whereHas('item', function($query) use ($search) {
+																	$query->where('name', 'like', "%$search%");
+																});
+															})
+															->orderBy('created_at', 'DESC')
+															->paginate(20);
+
+    return view('inventory.discard', [
+			'suppliers' => $suppliers,
+			'items' => $items,
+			'discardItems' => $discardItems,
+			'search' => $search
+		]);
+	}
+
+	public function discardItem(Request $request) {
+		try {
+			$item = $request->get('item');
+			$item = json_decode($item);
+			$supplierId = (int)$request->get('supplier');
+			$qty = (double)$request->get('qty');
+			$user = $request->get('user');
+
+			Item::where('id', $item->id)->update(['stock' => $item->stock - $qty]);
+
+			DiscardItem::create([
+				'user_id' => $user->id,
+				'item_id' => $item->id,
+				'supplier_id' => $supplierId,
+				'quantity' => $qty,
+				'amount' => $item->amount,
+				'total_amount' => $item->amount * $qty
+			]);
+
+			return redirect()->back()->with('success', 'Discarded Item!');	
+		} catch (\Exception $e) {
+			return redirect()->back()->with('error', 'Something went wrong!');
+		}
 	}
 }

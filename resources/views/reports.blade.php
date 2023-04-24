@@ -16,6 +16,8 @@
           <option {{(isset($type) && $type == "lowStock") ? 'selected' : ''}} value="lowStock">Low Stock Items</option>
           <option {{(isset($type) && $type == "transaction") ? 'selected' : ''}} value="transaction">Transaction List</option>
           <option {{(isset($type) && $type == "sales") ? 'selected' : ''}} value="sales">Sales List</option>
+          <option {{(isset($type) && $type == "discard") ? 'selected' : ''}} value="discard">Discarded Items</option>
+          <option {{(isset($type) && $type == "return") ? 'selected' : ''}} value="return">Returned Purchases</option>
         </select>
       </div>
       <div class="col-auto">
