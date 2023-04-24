@@ -46,6 +46,8 @@ Route::middleware([ValidateUser::class])->group(function () {
   Route::get('/return-items', [ItemController::class, 'returnItems'])->name('returnItems');
   Route::post('/return-items/{salesId}', [ItemController::class, 'saveReturnItems'])->name('saveReturnItems');
   Route::get('/return-items/damage-type', [ItemController::class, 'damageItems'])->name('damageItems');
+  Route::get('/discard-items', [ItemController::class, 'discardItems'])->name('discardItems');
+  Route::post('/discard-item', [ItemController::class, 'discardItem']);
 
   Route::get('/suppliers', [ItemController::class, 'suppliers'])->name('suppliers');
   Route::post('/supplier', [ItemController::class, 'updateOrCreateSupplier']);
@@ -57,6 +59,9 @@ Route::middleware([ValidateUser::class])->group(function () {
   Route::get('/transactions', [TransactionController::class, 'transactions'])->name('transactions');
   Route::get('/transaction', [TransactionController::class, 'addTransactionPage'])->name('addTransactionPage');
   Route::post('/transaction', [TransactionController::class, 'transaction']);
+  Route::get('/return-transactions', [TransactionController::class, 'returnTransactions'])->name('returnTransactions');
+  Route::post('/return-transaction', [TransactionController::class, 'returnTransaction']);
+  Route::post('/return-transaction/{id}/status', [TransactionController::class, 'returnTransactionStatus']);
 
   Route::get('/cashier', [POSController::class, 'cashier'])->name('cashier');
   Route::post('/cashier/open', [POSController::class, 'openCashier'])->name('openCashier');

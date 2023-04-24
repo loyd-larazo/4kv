@@ -11,6 +11,8 @@ use App\Models\User;
 use App\Models\Category;
 use App\Models\Item;
 use App\Models\Supplier;
+use App\Models\ReturnTransaction;
+use App\Models\DiscardItem;
 
 class TransactionController extends Controller
 {
@@ -111,5 +113,102 @@ class TransactionController extends Controller
 		$transaction->save();
 
 		return redirect()->back()->with('success', 'Transaction has been added!'); 
+	}
+
+	public function returnTransactions(Request $request) {
+		$page = $request->get('page') ?? 1;
+		$search = $request->get('search');
+
+    Paginator::currentPageResolver(function() use ($page) {
+      return $page;
+    });
+
+		$transactions = Transaction::with(['items.item', 'items.supplier'])->whereHas('items')->get();
+
+		$returnTransactions = ReturnTransaction::with(['user', 'transaction', 'transactionItems.item', 'transactionItems.supplier'])
+																					->whereHas('transactionItems', function ($query) {
+																						$query->whereNotNull('return_transaction_id');
+																					})
+																					->when($search, function ($query) use ($search) {
+																						$query->whereHas('transaction', function($query) use ($search) {
+																							$query->where('transaction_code', 'like', "%$search%");
+																						});
+																					})
+																					->orderBy('created_at', 'DESC')
+																					->paginate(20);
+
+    return view('inventory.return_transaction', [
+			'search' => $search,
+			'returnTransactions' => $returnTransactions,
+			'transactions' => json_encode($transactions)
+		]);
+	}
+
+	public function returnTransaction(Request $request) {
+		try {
+			$user = $request->get('user');
+			$transId = $request->get('transId');
+			$items = $request->get('items');
+			$items = json_decode($items);
+			$totalReturnQty = (int)$request->get('totalReturnQty');
+			$totalReturnAmount = (double)$request->get('totalReturnAmount');
+
+			if (count($items) > 0) {
+				$returnTransaction = ReturnTransaction::create([
+					'user_id' => $user->id,
+					'transaction_id' => $transId,
+					'quantity' => $totalReturnQty,
+					'total_amount' => $totalReturnAmount,
+					'status' => 'pending'
+				]);
+	
+				foreach($items as $item) {
+					$transItem = TransactionItem::where('id', $item->transItemId)->first();
+					$transItem->return_transaction_id = $returnTransaction->id;
+					$transItem->return_quantity = $item->returnQty;
+					$transItem->return_total_amount = $item->total_amount;
+					$transItem->save();
+
+					$itemModel = Item::where('id', $transItem->item_id)->first();
+					$itemModel->stock = $itemModel->stock - $item->returnQty;
+					$itemModel->save();
+				}
+				return redirect()->back()->with('success', 'Returned Purchased Items!');	
+			} else {
+				return redirect()->back()->with('success', 'No Items to Return.');	
+			}
+		} catch (\Exception $e) {
+			return redirect()->back()->with('error', 'Something went wrong!');
+		}
+	}
+
+	public function returnTransactionStatus(Request $request, $returnTransactionId) {
+		try {
+			$status = $request->get('status');
+			ReturnTransaction::where('id', $returnTransactionId)->update(['status' => $status]);
+
+			if ($status === 'discard') {
+				$user = $request->get('user');
+				$transItems = json_decode($request->get('transItems'));
+
+				if (count($transItems) > 0) {
+					foreach($transItems as $transItem) {
+						DiscardItem::create([
+							'user_id' => $user->id,
+							'item_id' => $transItem->item_id,
+							'supplier_id' => $transItem->supplier_id,
+							'quantity' => $transItem->return_quantity,
+							'amount' => $transItem->amount,
+							'total_amount' => $transItem->total_amount
+						]);
+					}
+					return redirect()->back()->with('success', 'Discarded items!');	
+				}
+				return redirect()->back()->with('success', 'No items to be discard.');	
+			}
+			return redirect()->back()->with('success', 'Picked up!');
+		} catch (\Exception $e) {
+			return redirect()->back()->with('error', 'Something went wrong!');
+		}
 	}
 }
